@@ -10,7 +10,7 @@ import json
 import os
 
 from language import get_text
-from data import RESOURCES, STARTING_SURVIVORS, DIFFICULTIES, MAX_HP, CHARACTER_NAME_UPDATES, tr
+from data import RESOURCES, STARTING_SURVIVORS, DIFFICULTIES, MAX_HP, CHARACTER_NAME_UPDATES, GOAL_DAY, RAID_START_DAY, ZOMBIES, tr
 
 # เก็บไฟล์เซฟไว้ในโฟลเดอร์เดียวกับโปรแกรม ไม่ว่าจะสั่งรันจากโฟลเดอร์ไหน
 SAVE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "last_shelter_save.json")
@@ -46,6 +46,22 @@ NEW_GAME = {
 
 # สถานะของศาลาที่กำลังเล่นอยู่ (ทุกโมดูลอ่าน/แก้ผ่าน storage.state)
 state = copy.deepcopy(NEW_GAME)
+
+
+def goal_day() -> int:
+    """Campaign length follows the current save's difficulty, including older saves."""
+    return DIFFICULTIES[state["difficulty"]]["days"]
+
+
+def pressure_day() -> float:
+    """Spread the existing supply/horde curve across the selected campaign."""
+    return 1 + (state["day"] - 1) * (GOAL_DAY - 1) / (goal_day() - 1)
+
+
+def ghost_day(level: int) -> int:
+    """First raids stay on day 3; later tiers progress toward the final-night boss."""
+    original = ZOMBIES[level - 1]["from_day"]
+    return RAID_START_DAY + round((original - RAID_START_DAY) * (goal_day() - RAID_START_DAY) / (GOAL_DAY - RAID_START_DAY))
 
 
 def new_survivor(name: str, skills: dict, look: str) -> dict:
@@ -95,6 +111,12 @@ def load_game() -> bool:
         data["omen"]["whisper"] = CHARACTER_NAME_UPDATES.get(name, name)
     state.clear()
     state.update(data)
+    # A pre-update save may carry a boss omen from the old day-15 finale.
+    omen = state["omen"]
+    if state["status"] == "playing" and omen and any(ghost_day(omen[key]) > state["day"] for key in ("actual", "shown")):
+        import random
+        import realm
+        realm.make_omen(random.Random())
     return True
 
 

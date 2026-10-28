@@ -10,7 +10,7 @@ import random
 
 from language import get_text
 from data import (DIFFICULTIES, LOCATIONS, OMENS, COUNTERS, LIGHTS, VOWS, VOW_DAYS, ZOMBIES, MAX_GRUDGE, MERIT_COST,
-                  FRIEND_GHOST_POWER, TICKET_PIECES, GOAL_DAY, RAID_START_DAY, tr)
+                  FRIEND_GHOST_POWER, TICKET_PIECES, RAID_START_DAY, tr)
 from ui import heading, choose_from_list
 import camp
 import storage
@@ -92,8 +92,8 @@ def make_omen(rng: random.Random) -> None:
     if not advanced() or today < RAID_START_DAY:
         state["omen"] = None
         return
-    kinds = [z["level"] for z in ZOMBIES if z["from_day"] <= today and z["level"] < 5]
-    actual = 5 if today >= GOAL_DAY else rng.choices(kinds, weights=[1 / k for k in kinds])[0]
+    kinds = [z["level"] for z in ZOMBIES if storage.ghost_day(z["level"]) <= today and z["level"] < 5]
+    actual = 5 if today >= storage.goal_day() else rng.choices(kinds, weights=[1 / k for k in kinds])[0]
     whisper = next((p["name"] for p in state["survivors"] if p["infected"]), None)
     others = [k for k in kinds if k != actual]
     if whisper or actual == 5 or not others or rng.random() < omen_accuracy():
@@ -191,7 +191,7 @@ def do_vow(key: str) -> str:
     state = storage.state
     if state["vow"]:
         return get_text("ยังไม่ได้แก้บนครั้งก่อน บนซ้อนไม่ได้", "Repay your last vow first.")
-    if key == "calm" and state["day"] >= GOAL_DAY:
+    if key == "calm" and state["day"] >= storage.goal_day():
         return get_text("คืนสุดท้ายเจ้าที่ก็ช่วยไม่ได้", "Not even the spirit can stop the final night.")
     if key == "calm":
         state["calm"] = True
@@ -287,7 +287,7 @@ def add_ticket(report: list) -> None:
 
 
 def escape_ready() -> bool:
-    """กฎ: เก็บชิ้นส่วนตั๋วครบ = ประตูมิติเปิดก่อนวันที่ 15"""
+    """Collect all ticket pieces to escape before the selected campaign's final night."""
     return advanced() and storage.state["tickets"] >= TICKET_PIECES
 
 

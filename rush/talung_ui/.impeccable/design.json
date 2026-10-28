@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-28T16:55:40.4477918Z",
+  "generatedAt": "2026-10-28T17:01:45.9587871Z",
   "title": "Design System: มิติผี — Ghost Realm",
   "extensions": {
     "colorMeta": {
@@ -29,8 +29,10 @@
   "narrative": {
     "overview": "A native Tkinter shelter-management game with colored Nang Talung figures, a lantern-lit pavilion, dark blue-green surfaces and parchment text. This records implemented conversation-approved direction, not measured mockup reproduction.",
     "keyCharacteristics": [
-      "Scene above three-column survivor roster",
-      "Visitor and management tabs on the right",
+      "Scene above a non-scrolling three-column survivor roster",
+      "One row for up to three survivors; two equal rows for four to six",
+      "Compact cards place portraits left 40% and information right 60%",
+      "Visitor and scrolling management tabs on the right",
       "Persistent daily-action footer",
       "Colored clothing, items and buttons"
     ],
@@ -48,6 +50,8 @@
     ],
     "dos": [
       "Use the shared stage camera for people and scenery.",
+      "Keep all six survivor cards visible with HP, jobs and possession status.",
+      "Fit portraits dynamically to the available card space.",
       "Keep the pavilion roof visible and actors grounded in the yard.",
       "Keep the name มิติผี."
     ],

@@ -53,6 +53,19 @@ def run():
         root = tk.Tk()
         root.report_callback_exception = lambda kind, value, traceback: errors.append(value)
         window = app.TalungApp(root)
+        for difficulty, duration in (("easy", 15), ("normal", 20), ("nightmare", 25)):
+            storage.new_game(difficulty)
+            storage.state["day"] = duration - 1
+            for language in ("th", "en"):
+                window.change_language(language)
+                root.update()
+                assert window.day_label.cget("text").endswith(f"/ {duration}")
+                window.show_title()
+                root.update()
+                assert window.resume_button.cget("text").endswith(f"/ {duration}")
+                window.close_title()
+        storage.new_game("normal")
+        window.refresh()
 
         def modal(operation, filename=None, choose=False):
             def inspect_and_close():
@@ -97,7 +110,7 @@ def run():
                     window.switch_tab(key)
                     root.update()
         app.set_language("th")
-        root.geometry("1440x900")
+        root.geometry("1440x900+0+0")
         window.refresh()
         root.update()
         assert "หลุด" not in root.title()
@@ -144,23 +157,23 @@ def run():
         root.update()
         if capture:
             capture_window(root, "gui-desktop.png")
-            root.geometry("1920x1080")
+            root.geometry("1600x1000+0+0")
             root.update()
             capture_window(root, "gui-wide.png")
-            root.geometry("1440x900")
+            root.geometry("1440x900+0+0")
             root.update()
         assert len(window.person_cards) == 3
         # Check job popup dispatch without changing the core game's assignment.
         for person in storage.state["survivors"]:
             assert app.gui.survivors.job_text(person)
-        for name, look in (("บัว", "ลุงเพิ่ม", "เทียน")):
+        for name, look in (("บัว", "girl"), ("ลุงเพิ่ม", "elder"), ("เทียน", "man")):
             storage.state["survivors"].append(storage.new_survivor(name, {"scavenge": 2, "guard": 2, "heal": 2}, look))
             window.refresh()
             root.update()
             for card in window.person_cards:
                 assert card.winfo_y() + card.winfo_height() <= window.people_view.winfo_height()
         storage.state["survivors"][1]["infected"] = 1
-        storage.state["day"] = 15
+        storage.state["day"] = storage.goal_day()
         for language in ("en", "th"):
             window.change_language(language)
             root.geometry("1180x780")
@@ -188,7 +201,7 @@ def run():
         # Synthetic presentation cases cover all report endings and raid art.
         for status in ("won", "lost"):
             sample = dict(result, status=status, lines=["👻x2 🔥x1 🦴x1 👺x1 🐯x1 = พลัง 24 vs พลังป้องกัน 20"])
-            modal(lambda report=sample: window.show_night(15, report))
+            modal(lambda report=sample: window.show_night(storage.goal_day(), report))
         for status in ("won", "lost"):
             storage.state["status"] = status
             window.refresh()

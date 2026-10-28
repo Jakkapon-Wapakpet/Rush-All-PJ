@@ -6,7 +6,7 @@ Two main screens: the title screen and the in-game day screen (dashboard + actio
 """
 
 from language import get_text, clear_screen, pause, choose_language
-from data import (RESOURCES, SKILLS, DIFFICULTIES, COUNTERS, LIGHTS, VOWS, GOAL_DAY, MAX_CAMP, MAX_HP, MAX_GRUDGE,
+from data import (RESOURCES, SKILLS, DIFFICULTIES, COUNTERS, LIGHTS, VOWS, MAX_CAMP, MAX_HP, MAX_GRUDGE,
                   TICKET_PIECES, tr)
 from ui import heading, ask_yes_no, choose_from_list
 import camp
@@ -25,13 +25,13 @@ def display_title() -> None:
     state = storage.state
     print("=" * 50)
     print(get_text("              👻   ห ลุ ด มิ ติ ผี   👻", "          👻   G H O S T   R E A L M   👻"))
-    print(get_text("       รอดให้ครบ 15 วัน แล้วประตูมิติจะเปิด",
-                   "     Survive 15 days until the portal opens"))
+    print(get_text(f"       รอดให้ครบ {storage.goal_day()} วัน แล้วประตูมิติจะเปิด",
+                   f"     Survive {storage.goal_day()} days until the portal opens"))
     print("=" * 50)
     if state["status"] == "playing" and state["day"] > 1:
         level = tr(DIFFICULTIES[state["difficulty"]]["name"])
-        print(get_text(f" 1. ▶ เล่นต่อ (วันที่ {state['day']}/{GOAL_DAY}, ระดับ{level})",
-                       f" 1. ▶ Continue (day {state['day']}/{GOAL_DAY}, {level})"))
+        print(get_text(f" 1. ▶ เล่นต่อ (วันที่ {state['day']}/{storage.goal_day()}, ระดับ{level})",
+                       f" 1. ▶ Continue (day {state['day']}/{storage.goal_day()}, {level})"))
     else:
         print(get_text(" 1. ▶ เริ่มเล่น", " 1. ▶ Play"))
     print(get_text(" 2. ✚ เริ่มเกมใหม่", " 2. ✚ New Game"))
@@ -47,7 +47,8 @@ def choose_difficulty():
     keys = list(DIFFICULTIES)
     for number, key in enumerate(keys, start=1):
         info = DIFFICULTIES[key]
-        print(f"{number}. {info['icon']} {tr(info['name']):<8} {tr(info['about'])}")
+        duration = get_text(f"{info['days']} วัน", f"{info['days']} days")
+        print(f"{number}. {info['icon']} {tr(info['name']):<8} ({duration}) {tr(info['about'])}")
     return choose_from_list(keys, "เลือกระดับ", "Choose a level")
 
 
@@ -80,7 +81,7 @@ def how_to_play_text() -> str:
     return get_text(
         f"👻 เรื่องย่อ: เพื่อน 3 คนไปเที่ยวงานฮาโลวีน แล้วเดินเข้าบ้านผีสิงด้วยบัตรฟรีจากคนที่ไม่มีเงา...\n"
         "   ตอนนี้ทุกคนติดอยู่ในมิติผี ต้องหลบอยู่ในศาลาเก่า\n"
-        f"🎯 เป้าหมาย: รอดให้ครบ {GOAL_DAY} วัน แล้วประตูมิติจะเปิด ยิ่งพากลับไปได้เยอะ ยิ่งได้ดาวเยอะ (สูงสุด ⭐⭐⭐)\n"
+        f"🎯 เป้าหมาย: รอดให้ครบ {storage.goal_day()} วัน แล้วประตูมิติจะเปิด ยิ่งพากลับไปได้เยอะ ยิ่งได้ดาวเยอะ (สูงสุด ⭐⭐⭐)\n"
         "\n📅 ในแต่ละวัน\n"
         "  1. มอบงานให้ทุกคน (กด ⚡ จัดงานอัตโนมัติ ได้)\n"
         "       🎒 หาของ  🛡 เฝ้ายาม  ✚ ประพรมน้ำมนต์  💤 พักผ่อน\n"
@@ -103,7 +104,7 @@ def how_to_play_text() -> str:
         f"  • เก็บชิ้นส่วนตั๋วครบ {TICKET_PIECES} ชิ้น ประตูบ้านผีสิงจะเปิดให้กลับบ้านก่อน (ดาวพิเศษ +1)",
         f"👻 Story: three friends went to a Halloween fair and took free haunted-house tickets from someone with no shadow...\n"
         "   Now they're trapped in the ghost realm, hiding in an old sala.\n"
-        f"🎯 Goal: survive {GOAL_DAY} days until the portal opens. More survivors = more stars (max ⭐⭐⭐)\n"
+        f"🎯 Goal: survive {storage.goal_day()} days until the portal opens. More survivors = more stars (max ⭐⭐⭐)\n"
         "\n📅 Each day\n"
         "  1. Give everyone a job (or press ⚡ Auto-assign)\n"
         "       🎒 Scavenge  🛡 Guard  ✚ Bless  💤 Rest\n"
@@ -205,9 +206,9 @@ def display_dashboard() -> None:
     state = storage.state
     print("=" * 62)
     level = DIFFICULTIES[state["difficulty"]]
-    print(get_text(f"  👻 หลุดมิติผี   วันที่ {state['day']}/{GOAL_DAY}   👥 {len(state['survivors'])}/{MAX_CAMP}   "
+    print(get_text(f"  👻 หลุดมิติผี   วันที่ {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_CAMP}   "
                    f"{level['icon']} {tr(level['name'])}",
-                   f"  👻 GHOST REALM   Day {state['day']}/{GOAL_DAY}   👥 {len(state['survivors'])}/{MAX_CAMP}   "
+                   f"  👻 GHOST REALM   Day {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_CAMP}   "
                    f"{level['icon']} {tr(level['name'])}"))
     print("=" * 62)
     res = state["resources"]

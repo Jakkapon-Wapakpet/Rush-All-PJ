@@ -12,7 +12,7 @@ import time
 
 from language import get_text
 from data import (RESOURCES, SKILLS, BUILDINGS, ZOMBIES, LOOKS, LOCATIONS, COUNTERS, FRIEND_GHOST_POWER,
-                  TICKET_PIECES, GOAL_DAY, MAX_CAMP, MAX_HP, STARVE_DAMAGE,
+                  TICKET_PIECES, MAX_CAMP, MAX_HP, STARVE_DAMAGE,
                   REST_HEAL, RAID_START_DAY, WANDERER_CHANCE, WANDERER_INFECTED, WANDERER_NAMES, TURN_DAYS, tr)
 from ui import heading, ask_yes_no
 import camp
@@ -21,7 +21,7 @@ import storage
 import survivors
 
 # โอกาสผีบุก จำนวนผีที่เพิ่มต่อวัน และโอกาสถูกสิงเมื่อถูกทำร้าย อยู่ใน data.DIFFICULTIES (ต่างกันตามระดับความยาก)
-SCARCITY_PER_DAY = 0.03  # ของที่หล่นมาจากโลกมนุษย์ถูกเก็บจนเกลี้ยง: ของที่หาได้ลดลงวันละ 3%
+SCARCITY_PER_DAY = 0.03  # Loss per base-timeline day; stretched over the selected campaign.
 GATHER_RANGE = 1         # สุ่มของที่หาได้ 0..(ทักษะ + ค่านี้) ต่ออย่าง
 RAID_BITES = 3           # ผีทำร้ายได้สูงสุดกี่คน
 SCRATCH_INFECT = 0.3     # โอกาสถูกผีสิงเมื่อบาดเจ็บตอนออกไปหาของ
@@ -32,7 +32,7 @@ LINE_DELAY = 0.25        # หน่วงเวลาระหว่างบ�
 
 def scarcity() -> float:
     """ตัวคูณของที่หาได้: ลดลงทุกวันเพราะของถูกเก็บจนเกลี้ยง (ไม่ต่ำกว่า 0.4)"""
-    return max(0.4, 1 - SCARCITY_PER_DAY * (storage.state["day"] - 1))
+    return max(0.4, 1 - SCARCITY_PER_DAY * (storage.pressure_day() - 1))
 
 
 def gather(person: dict, rng: random.Random) -> dict:
@@ -230,19 +230,19 @@ def reveal_disguised(rng: random.Random, report: list) -> None:
 def make_horde(rng: random.Random) -> list:
     """
     สุ่มฝูงผีของคืนนี้ คืนค่า list ของเลเวลผีแต่ละตัว
-    จำนวน = 3 + (วัน x horde_growth ของระดับความยาก) + สุ่ม 0-2 ตัว, ชนิดที่สุ่มได้ = ชนิดที่ถึงวันโผล่แล้ว (เลเวลสูงโผล่น้อยกว่า)
+    จำนวน = 3 + (วันตามสัดส่วนแคมเปญ x horde_growth) + สุ่ม 0-2 ตัว, เลเวลสูงโผล่น้อยกว่า
     ระดับปกติขึ้นไป: ผีตัวจริงตามลางมาเพิ่ม 2 ตัว และความแค้นทุก 2 แต้มเพิ่มผีอีก 1 ตัว
     คืนสุดท้ายมีเสือสมิงมาด้วยเสมอ
     """
     state = storage.state
     day = state["day"]
-    kinds = [z for z in ZOMBIES if z["from_day"] <= day and z["level"] < 5]
+    kinds = [z for z in ZOMBIES if storage.ghost_day(z["level"]) <= day and z["level"] < 5]
     weights = [1 / z["level"] for z in kinds]
-    count = 3 + round(day * realm.setting("horde_growth")) + rng.randint(0, 2) + state["grudge"] // 2
+    count = 3 + round(storage.pressure_day() * realm.setting("horde_growth")) + rng.randint(0, 2) + state["grudge"] // 2
     horde = [z["level"] for z in rng.choices(kinds, weights=weights, k=count)]
     if state["omen"] and state["omen"]["actual"] < 5:
         horde += [state["omen"]["actual"]] * 2
-    if day >= GOAL_DAY:
+    if day >= storage.goal_day():
         horde.append(5)
     return sorted(horde)
 
@@ -260,11 +260,11 @@ def expected_horde_power() -> int:
     today = storage.state["day"]
     if today < RAID_START_DAY:
         return 0
-    kinds = [z for z in ZOMBIES if z["from_day"] <= today and z["level"] < 5]
+    kinds = [z for z in ZOMBIES if storage.ghost_day(z["level"]) <= today and z["level"] < 5]
     weights = [1 / z["level"] for z in kinds]
     average = sum(w * z["power"] for w, z in zip(weights, kinds)) / sum(weights)
-    count = 3 + round(today * realm.setting("horde_growth")) + 1 + storage.state["grudge"] // 2
-    boss = realm.ghost_power(5) if today >= GOAL_DAY else 0
+    count = 3 + round(storage.pressure_day() * realm.setting("horde_growth")) + 1 + storage.state["grudge"] // 2
+    boss = realm.ghost_power(5) if today >= storage.goal_day() else 0
     omen = storage.state["omen"]
     featured = realm.ghost_power(omen["actual"]) * 2 if omen and omen["actual"] < 5 else 0
     return round(average * count) + boss + featured
@@ -283,7 +283,7 @@ def night_event(rng: random.Random, report: list) -> str:
     if not people:
         return "none"
 
-    final_night = state["day"] >= GOAL_DAY
+    final_night = state["day"] >= storage.goal_day()
     calm = state["calm"] and not final_night
     if calm:
         report.append(get_text("🌙 เจ้าที่คุ้มครอง... คืนนี้ไม่มีผีกล้าเข้าใกล้", "🌙 The spirit keeps watch... no ghost dares come near."))
@@ -400,10 +400,10 @@ def do_end_day(rng: random.Random = None) -> dict:
                                  "event": event})
 
     # ตรวจชนะ/แพ้ (ตั๋วครบ = กลับบ้านก่อน) แล้วเริ่มวันใหม่
-    early = bool(state["survivors"]) and realm.escape_ready() and state["day"] < GOAL_DAY
+    early = bool(state["survivors"]) and realm.escape_ready() and state["day"] < storage.goal_day()
     if not state["survivors"]:
         state["status"] = "lost"
-    elif state["day"] >= GOAL_DAY or early:
+    elif state["day"] >= storage.goal_day() or early:
         state["status"] = "won"
         state["escaped"] = early
     else:
@@ -459,7 +459,7 @@ def end_day() -> None:
     elif result["status"] == "lost":
         print(get_text("\n☠ ศาลาเงียบงัน... ไม่มีใครได้กลับบ้าน", "\n☠ The sala falls silent... No one made it home."))
     else:
-        print(get_text(f"\n🌅 เช้าวันที่ {state['day']}/{GOAL_DAY}", f"\n🌅 Morning of day {state['day']}/{GOAL_DAY}"))
+        print(get_text(f"\n🌅 เช้าวันที่ {state['day']}/{storage.goal_day()}", f"\n🌅 Morning of day {state['day']}/{storage.goal_day()}"))
         if realm.omen_text():
             print(realm.omen_text())
         infected = [p["name"] for p in state["survivors"] if p["infected"]]
@@ -499,9 +499,9 @@ def camp_log() -> None:
     log = state["log"]
     stats = camp_stats()
     heading("บันทึกศาลา", "SALA LOG")
-    survived = min(state["day"] - (0 if state["status"] != "playing" else 1), GOAL_DAY)
-    print(get_text(f"รอดมาแล้ว {survived}/{GOAL_DAY} วัน   ", f"Survived {survived}/{GOAL_DAY} days   ")
-          + "■" * survived + "□" * (GOAL_DAY - survived))
+    survived = min(state["day"] - (0 if state["status"] != "playing" else 1), storage.goal_day())
+    print(get_text(f"รอดมาแล้ว {survived}/{storage.goal_day()} วัน   ", f"Survived {survived}/{storage.goal_day()} days   ")
+          + "■" * survived + "□" * (storage.goal_day() - survived))
     print(get_text(f"ผู้รอดชีวิต {len(state['survivors'])} คน   เข้าร่วมใหม่ {log['joined']}   เสียชีวิต {log['deaths']}",
                    f"Survivors {len(state['survivors'])}   joined {log['joined']}   died {log['deaths']}"))
     print(get_text(f"ผีบุก {log['raids']} ครั้ง   ต้านไว้ได้ {log['repelled']} ({stats['defense_rate']:.0f}%)",

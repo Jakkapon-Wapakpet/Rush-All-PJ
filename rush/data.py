@@ -7,7 +7,7 @@ Static data: resources, jobs, buildings, starting survivors, and difficulty sett
 
 from language import get_language
 
-GOAL_DAY = 15            # ประตูมิติเปิดหลังจบวันที่ 15 (ได้ดาวตามจำนวนคนที่รอดกลับไป)
+GOAL_DAY = 15            # Base timeline; actual campaign length comes from difficulty.
 MAX_CAMP = 6             # ศาลารับคนได้สูงสุด
 MAX_HP = 100
 MIN_SCAVENGE_HP = 40     # HP ต่ำกว่านี้ออกไปหาของ/เฝ้ายามไม่ได้
@@ -105,15 +105,15 @@ STORY = {
 #   resources = ของตั้งต้น, raid_chance = โอกาสผีบุกต่อคืน, horde_growth = ผีเพิ่มวันละกี่ตัว
 #   bite_infect = โอกาสถูกสิงเมื่อถูกทำร้าย, omen_accuracy = ลางแม่นแค่ไหน, disguised = โอกาสคนแปลกหน้าเป็นผีปลอมตัว
 DIFFICULTIES = {
-    "easy": {"name": {"th": "ง่าย", "en": "Easy"}, "icon": "😊", "advanced": False,
+    "easy": {"name": {"th": "ง่าย", "en": "Easy"}, "icon": "😊", "advanced": False, "days": 15,
              "about": {"th": "กฎพื้นฐาน เหมาะกับการเล่นครั้งแรกหรือเดโม", "en": "Basic rules, good for a first game or a demo"},
              "resources": {"food": 8, "water": 8, "scrap": 5, "medicine": 3},
              "raid_chance": 0.55, "horde_growth": 0.5, "bite_infect": 0.4, "omen_accuracy": 1.0, "disguised": 0.0},
-    "normal": {"name": {"th": "ปกติ", "en": "Normal"}, "icon": "😐", "advanced": True,
+    "normal": {"name": {"th": "ปกติ", "en": "Normal"}, "icon": "😐", "advanced": True, "days": 20,
                "about": {"th": "เปิดทุกระบบ ต้องอ่านลางและเลือกเสี่ยงให้เป็น", "en": "Every system on: read omens, pick your risks"},
                "resources": {"food": 7, "water": 7, "scrap": 6, "medicine": 2},
                "raid_chance": 0.75, "horde_growth": 0.9, "bite_infect": 0.45, "omen_accuracy": 0.75, "disguised": 0.12},
-    "nightmare": {"name": {"th": "ฝันร้าย", "en": "Nightmare"}, "icon": "💀", "advanced": True,
+    "nightmare": {"name": {"th": "ฝันร้าย", "en": "Nightmare"}, "icon": "💀", "advanced": True, "days": 25,
                   "about": {"th": "ผีดุ ของน้อย ลางหลอกบ่อย พลาดนิดเดียวไม่รอด", "en": "Fierce ghosts, few supplies, lying omens"},
                   "resources": {"food": 5, "water": 5, "scrap": 4, "medicine": 1},
                   "raid_chance": 0.9, "horde_growth": 1.3, "bite_infect": 0.5, "omen_accuracy": 0.55, "disguised": 0.25},

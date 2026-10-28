@@ -85,7 +85,7 @@ Key characteristics:
 
 - A compact scene above three large survivor cards per row on the left.
 - A separate visitor and management panel on the right.
-- Persistent feedback and daily actions below independently scrolling content.
+- A fully visible roster and persistent daily actions; only the right management content scrolls.
 - Nang Talung contours and colored materials throughout menus, portraits and reports.
 
 ## Colors
@@ -117,7 +117,7 @@ The midnight blue and indigo artwork sits inside dark blue-green native surfaces
 
 Leelawadee UI serves Thai and English. Tk font sizes are points; geometric dimensions are pixels. Shared body copy is regular (11pt), small copy regular (10pt), and the `ui.font` helper supplies bold labels and headings. No custom web-font loading is involved.
 
-The header title is bold (20pt in Thai, 15pt in English), resource values bold (17pt), survivor names bold (16pt), visitor names bold (19pt), panel headings generally bold (17–18pt), and dialog headings bold (20pt). Job controls are bold (11pt); tabs are bold (10pt). The main end-day action is bold (13pt). The title menu uses the authored logo image rather than reconstructing its lettering as a font.
+The header title is bold (20pt in Thai, 15pt in English), resource values bold (17pt), survivor names bold (16pt, or 12pt in compact cards), visitor names bold (19pt), panel headings generally bold (17–18pt), and dialog headings bold (20pt). Job controls are bold (11pt, or 10pt in compact cards); tabs are bold (10pt). The main end-day action is bold (13pt). The title menu uses the authored logo image rather than reconstructing its lettering as a font.
 
 **The Live Text Rule.** Keep names, status, numbers and controls as native text; portrait artwork contains no baked-in interface copy. The displayed Thai game name is มิติผี.
 
@@ -125,13 +125,13 @@ The header title is bold (20pt in Thai, 15pt in English), resource values bold (
 
 The default client area is 1440 × 900, with a minimum of 1180 × 780. The header combines title, day, four resource groups, menu and language controls. A thin divider precedes the body. Horizontal outer padding is 18 pixels; body and footer vertical padding is 10 pixels.
 
-The expanding left side holds the landscape, survivor count/unassigned count and independently scrolling three-column roster. The right panel stays 350 pixels wide, separated by 14 pixels, and has its own scroll region. Six management destinations occupy a three-column tab grid: Gate, Build, Tonight, Shrine, Ghosts and Log. Advanced-only tabs remain subject to existing game rules. The selected tab changes the right panel; the gate presents the visitor there.
+The expanding left side holds the landscape, survivor count/unassigned count and a non-scrolling three-column roster in an ordinary Tk frame. The right panel stays 350 pixels wide, separated by 14 pixels, and has its own scroll region. Six management destinations occupy a three-column tab grid: Gate, Build, Tonight, Shrine, Ghosts and Log. Advanced-only tabs remain subject to existing game rules. The selected tab changes the right panel; the gate presents the visitor there.
 
 The scene height responds to its width: `round(width / 5.5)`, clamped to 210–320 pixels. The gameplay camera uses `stage-game.png`; its crop keeps the pavilion roof and yard in view. `Stage.fit` and `Stage.point` share the same scale and offset for scenery and actor placement. Survivors stand on the plate's normalized yard baseline (0.79), spread around horizontal 0.40; the visitor stands near 0.82. Actor size derives from the same camera scale, so people remain grounded as the scene resizes.
 
-Roster columns have equal weight and retain three columns at the supported minimum size. Card gaps are 8 pixels horizontally and 9 vertically. Each portrait mount is 216 pixels high. No mobile stacking breakpoint is implemented.
+Roster columns have equal weight and retain three columns at the supported minimum size. Up to three people share one row; four to six occupy two equal-height rows, so the full roster remains visible. Card gaps are 8 pixels horizontally and 9 vertically. Portraits fit their available width and height on resize. With more than three people, each card places its portrait in the left 40% and information in the right 60%, with shortened jobs, numeric HP, a meter and any possession label visible. No mobile stacking breakpoint is implemented.
 
-The footer remains visible below the scrolling panels. Feedback and defense/threat appear on the left; automatic assignment and the amber end-day button sit on the right. Title and story overlays intentionally cover the management layout while open.
+The footer remains visible below the body. Feedback and defense/threat appear on the left; automatic assignment and the amber end-day button sit on the right. Title and story overlays intentionally cover the management layout while open.
 
 ## Elevation & Depth
 
@@ -144,10 +144,10 @@ Panels, cards, meters and buttons use square corners. Thin warm outlines frame c
 ## Components
 
 - **Buttons:** flat native controls have a one-pixel boundary, amber focus highlight, hand cursor and immediate hover fill. Default padding is 12 pixels horizontally and 7 vertically; the footer primary uses 22 and 9. Disabled job controls retain muted text. Hover is not animated.
-- **Survivor cards:** a full-width illustrated portrait precedes name, numeric HP and meter, then a moss job dropdown. HP uses leaf at 70 or above, amber at 40–69 and coral below 40. Infection adds text and outline, with inherited attention behavior. The portrait's ellipsis opens details, skills, rename and exile controls instead of showing every action in the card.
+- **Survivor cards:** up to three people use tall cards with a portrait above their information. Four to six use compact landscape cards: portrait left, name, HP, meter and moss job dropdown right. Portraits resize to the available space. Compact controls use short job names; infection displays the concise ถูกผีสิง / Possessed label and coral outline, with inherited attention behavior. HP uses leaf at 70 or above, amber at 40–69 and coral below 40. The ellipsis opens full details, skills, rename and exile controls. Starting names are กล้า, พิกุล and สิงห์; generated people draw from the updated random-name pool. Loading migrates former built-in names while retaining other names.
 - **Job menus:** native popup menus list assignable jobs, use moss selection feedback and disable jobs rejected by the existing game checks. Inspection or completed-game status disables the card selector.
 - **Visitor panel:** a concealed stranger portrait, name, inspection status and three decisions occupy the gate tab. Check shadow is amber, accept is moss and reject uses the standard dark treatment. Details expand beneath the decisions. The no-visitor state supplies explanatory text and a dimmed portrait.
-- **Tabs and scrolling:** active tabs have a brighter dark surface and amber text. Gate adds an exclamation mark when a visitor waits. The right panel resets to the top after switching tabs. Ten-pixel vertical scrollbars and wheel routing support each panel independently.
+- **Tabs and scrolling:** active tabs have a brighter dark surface and amber text. Gate adds an exclamation mark when a visitor waits. The right panel resets to the top after switching tabs. The right management panel uses a ten-pixel vertical scrollbar and wheel routing; the roster has no scrollbar.
 - **Title and story:** the title uses `stage-color.png`, the authored `logo.png`, a left menu and three colored figures in the yard. Start/continue is amber. The introduction places scenery and paginated text side by side, with next, skip, Enter and Escape controls.
 - **Dialogs and reports:** person details, difficulty choice, help and night reports share dark panels and amber headings. Help and night logs scroll while their return actions remain visible; the night report can resize. Endings also appear in a banner above the roster.
 - **Artwork:** `survivors-color.png` is a three-column, two-row atlas for man, woman, big, girl, elder and stranger; each column is 512 pixels. `ghosts.png` provides spirit, krasue, preta, pop and saming. Sprites trim their alpha bounds and preserve aspect ratio with Lanczos resizing. Resource/building icons reuse legacy alpha silhouettes with colored fills. Card portraits composite the figure over `stage-color.png`; the gameplay plate is separate.
@@ -158,7 +158,7 @@ Panels, cards, meters and buttons use square corners. Thin warm outlines frame c
 - **Do** keep the scene above the three-column roster, the visitor/management panel on the right and daily actions in the persistent footer.
 - **Do** use the shared stage camera for actor placement and sizing, keeping feet on the yard and the pavilion roof visible.
 - **Do** preserve existing rule checks, state, saves and concealed information when changing presentation.
+- **Do** show the selected campaign duration consistently: Easy 15, Normal 20, Nightmare 25 days. Difficulty cards display durations; header, continue action and graphs follow the current save. Ghost catalog arrival dates use the same schedule as raids and omens.
 - **Don't** restore the obsolete grayscale direction or single-column roster from the previous design document.
 - **Don't** rename the game by adding a prefix to มิติผี, or bake changing game copy into images.
 - **Don't** interpret the three reference captures as proof of every dialog, English text state or platform. They evidence the Thai title menu, desktop gate and crowded late-day/infection view; implementation details above are also grounded in the source.
-

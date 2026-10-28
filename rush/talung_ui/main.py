@@ -84,7 +84,7 @@ class TalungApp(NarrativeScreens, gui.ShelterApp):
     def draw_header(self):
         state = gui.storage.state
         self.logo.config(text=get_text("มิติผี", "GHOST REALM"), font=ui.font(size=20 if get_language() == "th" else 15))
-        self.day_label.config(text=get_text(f"วันที่ {state['day']} / {gui.GOAL_DAY}", f"Day {state['day']} / {gui.GOAL_DAY}"))
+        self.day_label.config(text=get_text(f"วันที่ {state['day']} / {gui.storage.goal_day()}", f"Day {state['day']} / {gui.storage.goal_day()}"))
         for child in self.resource_bar.winfo_children():
             child.destroy()
         for column, (key, info) in enumerate(gui.RESOURCES.items()):
@@ -125,7 +125,7 @@ class TalungApp(NarrativeScreens, gui.ShelterApp):
         for index, building in enumerate(state["buildings"]):
             canvas.create_image(40 + index * 45, base, image=art.sprite(building, 3), anchor="s")
         if state["status"] == "playing" and state["day"] >= gui.RAID_START_DAY:
-            kinds = [ghost for ghost in gui.ZOMBIES if ghost["from_day"] <= state["day"]]
+            kinds = [ghost for ghost in gui.ZOMBIES if gui.storage.ghost_day(ghost["level"]) <= state["day"]]
             for index, ghost in enumerate(kinds[-2:]):
                 canvas.create_image(width * (0.10, 0.92)[index], base,
                                     image=art.sprite(art.GHOSTS[ghost["level"] - 1], actor_scale), anchor="s")
@@ -285,7 +285,7 @@ class TalungApp(NarrativeScreens, gui.ShelterApp):
         for key, color, offset in (("food", COLORS["green"], 0), ("water", COLORS["blue"], 100)):
             points = []
             for index, entry in enumerate(days):
-                points.extend((pad + index * (width - pad * 2) / (gui.GOAL_DAY - 1), height - pad - entry[key] / top * (height - pad * 2)))
+                points.extend((pad + index * (width - pad * 2) / (gui.storage.goal_day() - 1), height - pad - entry[key] / top * (height - pad * 2)))
             canvas.create_line(*points, fill=color, width=2)
             canvas.create_text(pad + offset, 10, anchor="w", fill=color, text=gui.tr(gui.RESOURCES[key]["name"]), font=theme.FONT_SMALL)
 

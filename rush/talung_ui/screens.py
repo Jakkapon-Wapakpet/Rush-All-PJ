@@ -58,7 +58,7 @@ class NarrativeScreens:
             if not started:
                 self.show_intro()
 
-        text = get_text(f"เล่นต่อ · วันที่ {state['day']} / {gui.GOAL_DAY}", f"Continue · Day {state['day']} / {gui.GOAL_DAY}") if started else get_text("เริ่มเล่น", "Start playing")
+        text = get_text(f"เล่นต่อ · วันที่ {state['day']} / {gui.storage.goal_day()}", f"Continue · Day {state['day']} / {gui.storage.goal_day()}") if started else get_text("เริ่มเล่น", "Start playing")
         self.resume_button = ui.button(menu, text, resume, C["accent"], C["accent_dark"], fg=C["ink"], size=17, pady=12)
         self.resume_button.pack(fill="x", pady=6)
         if state["status"] != "playing":
@@ -192,6 +192,7 @@ class NarrativeScreens:
             card = tk.Frame(body, bg=C["card"], padx=16, pady=14, highlightthickness=1, highlightbackground=C["line"])
             card.grid(row=0, column=index, sticky="nsew", padx=5)
             ui.label(card, gui.tr(info["name"]), C["card"], C["red"] if key == "nightmare" else C["accent"], ui.font(size=18)).pack(anchor="w")
+            ui.label(card, get_text(f"{info['days']} วัน", f"{info['days']} days"), C["card"], C["text"], ui.font(size=14)).pack(anchor="w", pady=(5, 0))
             ui.label(card, gui.tr(info["about"]), C["card"], C["muted"], wraplength=210, justify="left", height=5, anchor="nw").pack(pady=12)
             ui.button(card, get_text("เลือกระดับนี้", "Choose"), lambda level=key: pick(level), C["job"], size=11).pack(fill="x")
         cancel = ui.button(dialog, get_text("ยกเลิก", "Cancel"), dialog.destroy)
@@ -267,7 +268,7 @@ class NarrativeScreens:
     def draw_zombies(self, parent):
         ui.label(parent, get_text("ผีในมิติ", "Ghosts of the realm"), font=ui.font(size=18)).pack(anchor="w", pady=(0, 10))
         for ghost in gui.ZOMBIES:
-            seen = ghost["from_day"] <= gui.storage.state["day"]
+            seen = gui.storage.ghost_day(ghost["level"]) <= gui.storage.state["day"]
             row = tk.Frame(parent, bg=C["card"], padx=10, pady=12)
             row.pack(fill="x", pady=(0, 10))
             tk.Label(row, image=art.sprite(art.GHOSTS[ghost["level"] - 1], 7, shadow=not seen), bg=C["screen"]).pack(side="left", padx=(0, 10))
@@ -275,6 +276,8 @@ class NarrativeScreens:
             info.pack(side="left", fill="x", expand=True)
             ui.label(info, gui.tr(ghost["name"]) if seen else "???", C["card"], C["text"], ui.font(size=13)).pack(anchor="w")
             ui.label(info, get_text(f"ระดับ {ghost['level']} · พลัง {ghost['power']}", f"Level {ghost['level']} · Power {ghost['power']}"), C["card"], C["muted"], theme.FONT_SMALL).pack(anchor="w")
+            arrival = gui.storage.ghost_day(ghost["level"])
+            ui.label(info, get_text(f"เริ่มวันที่ {arrival}", f"Appears from day {arrival}"), C["card"], C["muted"], theme.FONT_SMALL).pack(anchor="w")
             ui.label(info, gui.tr(ghost["about"]), C["card"], C["muted"], theme.FONT_SMALL, wraplength=170, justify="left").pack(anchor="w", pady=5)
 
     def draw_build(self, parent):

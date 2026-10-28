@@ -26,7 +26,7 @@ except ImportError:
     sys.exit(1)
 
 from language import get_text, get_language, set_language
-from data import (RESOURCES, SKILLS, JOBS, BUILDINGS, ZOMBIES, GOAL_DAY, MAX_CAMP, MAX_HP,
+from data import (RESOURCES, SKILLS, JOBS, BUILDINGS, ZOMBIES, MAX_CAMP, MAX_HP,
                   MIN_SCAVENGE_HP, RAID_START_DAY, STORY, DIFFICULTIES, LOCATIONS, COUNTERS, LIGHTS, VOWS, VOW_DAYS,
                   MERIT_COST, MAX_GRUDGE, TICKET_PIECES, tr)
 import camp
@@ -231,14 +231,14 @@ class ShelterApp:
         # เงาผีด้านซ้ายและขวาของศาลา (ชนิดที่โผล่แล้วเท่านั้น, คืนสุดท้ายมีเสือสมิงด้วย)
         today = state["day"]
         if state["status"] == "playing" and today >= RAID_START_DAY:
-            kinds = [ZOMBIE_SPRITES[z["level"] - 1] for z in ZOMBIES if z["from_day"] <= today and z["level"] < 5]
+            kinds = [ZOMBIE_SPRITES[z["level"] - 1] for z in ZOMBIES if storage.ghost_day(z["level"]) <= today and z["level"] < 5]
             count = min(10, 2 + today // 2)
             for index in range(count):
                 side = index % 2
                 low, high = (130, center - 150) if side == 0 else (center + 150, width - 30)
                 x = rng.randrange(low, max(low + 1, high))
                 self.add_floater(sprite(rng.choice(kinds), 3), x, base - rng.randrange(0, 18))
-            if today >= GOAL_DAY:
+            if today >= storage.goal_day():
                 self.add_floater(sprite(ZOMBIE_SPRITES[4], 4), width - 140, base - 4)
         elif state["status"] == "playing":
             canvas.create_text(width - 100, 14, anchor="ne", fill=COLORS["puppet"], font=FONT_SMALL,
@@ -394,12 +394,12 @@ class ShelterApp:
         day_box = tk.Frame(self.top_bar, bg=bg)
         day_box.pack(side="left", padx=(0, 14))
         level = tr(DIFFICULTIES[state["difficulty"]]["name"])
-        day_text = get_text(f"วันที่ {state['day']}/{GOAL_DAY}  ·  {level}", f"DAY {state['day']}/{GOAL_DAY}  ·  {level}")
+        day_text = get_text(f"วันที่ {state['day']}/{storage.goal_day()}  ·  {level}", f"DAY {state['day']}/{storage.goal_day()}  ·  {level}")
         tk.Label(day_box, text=day_text, font=type_font(day_text, 13), bg=bg, fg=COLORS["text"]).pack(anchor="w")
         # แถบวันเป็นเทียน 15 เล่ม: วันที่ผ่านไปแล้วเทียนดับ วันนี้เปลวไฟใหญ่ เล่มสุดท้ายสีแดง (คืนบอส)
-        track = tk.Canvas(day_box, width=GOAL_DAY * 11, height=18, bg=bg, highlightthickness=0)
+        track = tk.Canvas(day_box, width=storage.goal_day() * 11, height=18, bg=bg, highlightthickness=0)
         track.pack(anchor="w", pady=(3, 0))
-        for number in range(1, GOAL_DAY + 1):
+        for number in range(1, storage.goal_day() + 1):
             x = (number - 1) * 11
             if number == state["day"] and state["status"] == "playing":
                 track.create_rectangle(x, 6, x + 10, 18, fill=COLORS["card_hover"], width=0)
@@ -409,7 +409,7 @@ class ShelterApp:
                 body, flame = COLORS["text"], (COLORS["amber"], 0)
             else:
                 body, flame = COLORS["muted"], ("#e88a3a", 3)
-            if number == GOAL_DAY and body != COLORS["disabled"]:
+            if number == storage.goal_day() and body != COLORS["disabled"]:
                 body = COLORS["red"]
             track.create_rectangle(x + 2, 8, x + 8, 18, fill=body, width=0)
             if flame:
@@ -684,7 +684,7 @@ class ShelterApp:
               FONT_BOLD).pack(anchor="w", pady=(4, 0))
 
         for zombie in ZOMBIES:
-            seen = zombie["from_day"] <= today
+            seen = storage.ghost_day(zombie["level"]) <= today
             card = tk.Frame(parent, bg=COLORS["card"], padx=12, pady=8)
             card.pack(fill="x", pady=(10, 0))
             picture(card, sprite(ZOMBIE_SPRITES[zombie["level"] - 1], 5, shadow=not seen)).pack(side="left")
@@ -692,8 +692,8 @@ class ShelterApp:
             text_box.pack(side="left", fill="x", expand=True, padx=12)
             name = f"Lv.{zombie['level']}  " + (tr(zombie["name"]) if seen else "???")
             label(text_box, name, COLORS["card"], COLORS["text"] if seen else COLORS["muted"], FONT_BOLD).pack(anchor="w")
-            label(text_box, get_text(f"พลังโจมตี {zombie['power']}  ·  เริ่มโผล่วันที่ {zombie['from_day']}",
-                                     f"Power {zombie['power']}  ·  appears from day {zombie['from_day']}"),
+            label(text_box, get_text(f"พลังโจมตี {zombie['power']}  ·  เริ่มโผล่วันที่ {storage.ghost_day(zombie['level'])}",
+                                     f"Power {zombie['power']}  ·  appears from day {storage.ghost_day(zombie['level'])}"),
                   COLORS["card"], COLORS["muted"], FONT_SMALL).pack(anchor="w")
             label(text_box, tr(zombie["about"]), COLORS["card"], COLORS["amber"] if seen else COLORS["muted"],
                   FONT_SMALL).pack(anchor="w")
@@ -757,7 +757,7 @@ class ShelterApp:
                                text=tk_safe(get_text("กราฟจะแสดงหลังผ่านไป 2 วัน", "The chart appears after 2 days")))
             return
         top = max(max(d["food"], d["water"]) for d in days) or 1
-        step = (width - pad * 2) / (GOAL_DAY - 1)
+        step = (width - pad * 2) / (storage.goal_day() - 1)
         for key, color in (("food", COLORS["accent"]), ("water", COLORS["blue"])):
             points = []
             for index, entry in enumerate(days):
@@ -768,7 +768,7 @@ class ShelterApp:
         canvas.create_text(pad + 70, 10, anchor="w", fill=COLORS["blue"], font=FONT_SMALL_BOLD,
                            text=tk_safe(tr(RESOURCES["water"]["name"])))
         canvas.create_text(pad, height - 8, anchor="w", fill=COLORS["muted"], font=FONT_SMALL, text="1")
-        canvas.create_text(width - pad, height - 8, anchor="e", fill=COLORS["muted"], font=FONT_SMALL, text=str(GOAL_DAY))
+        canvas.create_text(width - pad, height - 8, anchor="e", fill=COLORS["muted"], font=FONT_SMALL, text=str(storage.goal_day()))
 
     # ---------- แถบล่าง ----------
 
@@ -1197,7 +1197,7 @@ class ShelterApp:
                 label(body, get_text("ศาลาเงียบงัน... ไม่มีใครได้กลับบ้าน", "The sala falls silent... No one made it home."),
                       COLORS["panel"], COLORS["red"], FONT_BIG).pack(anchor="w", pady=(14, 0))
             else:
-                label(body, get_text(f"เช้าวันที่ {state['day']}/{GOAL_DAY}", f"Morning of day {state['day']}/{GOAL_DAY}"),
+                label(body, get_text(f"เช้าวันที่ {state['day']}/{storage.goal_day()}", f"Morning of day {state['day']}/{storage.goal_day()}"),
                       COLORS["panel"], COLORS["accent"], FONT_BOLD).pack(anchor="w", pady=(12, 0))
                 if realm.omen_text():
                     label(body, realm.omen_text(), COLORS["panel"], COLORS["amber"], FONT_SMALL_BOLD, wraplength=620,
@@ -1242,7 +1242,8 @@ class ShelterApp:
 
         for key, info in DIFFICULTIES.items():
             color = COLORS["red_dark"] if key == "nightmare" else COLORS["card"]
-            flat_button(dialog, f"{tr(info['name'])}  —  {tr(info['about'])}", lambda k=key: pick(k), color,
+            duration = get_text(f"{info['days']} วัน", f"{info['days']} days")
+            flat_button(dialog, f"{tr(info['name'])} ({duration}) — {tr(info['about'])}", lambda k=key: pick(k), color,
                         COLORS["card_hover"], size=11, anchor="w").pack(fill="x", padx=28, pady=3)
         cancel = flat_button(dialog, get_text("ยกเลิก", "Cancel"), dialog.destroy, COLORS["panel"])
         cancel.pack(pady=(10, 18))
