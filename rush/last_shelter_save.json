@@ -1,0 +1,96 @@
+{
+  "day": 4,
+  "status": "playing",
+  "resources": {
+    "food": 4,
+    "water": 19,
+    "scrap": 5,
+    "medicine": 1
+  },
+  "survivors": [
+    {
+      "name": "เคน",
+      "hp": 81,
+      "skills": {
+        "scavenge": 4,
+        "guard": 2,
+        "heal": 1
+      },
+      "job": null,
+      "infected": 0,
+      "power": "scout",
+      "level": 3,
+      "xp": 0
+    },
+    {
+      "name": "หมอแพร",
+      "hp": 73,
+      "skills": {
+        "scavenge": 2,
+        "guard": 1,
+        "heal": 4
+      },
+      "job": null,
+      "infected": 0,
+      "power": "scientist",
+      "level": 2,
+      "xp": 0
+    },
+    {
+      "name": "บิ๊ก",
+      "hp": 83,
+      "skills": {
+        "scavenge": 1,
+        "guard": 4,
+        "heal": 1
+      },
+      "job": null,
+      "infected": 0,
+      "power": "marksman",
+      "level": 2,
+      "xp": 4
+    }
+  ],
+  "buildings": [],
+  "wanderer": null,
+  "log": {
+    "gathered": {
+      "food": 7,
+      "water": 22,
+      "scrap": 4,
+      "medicine": 0
+    },
+    "raids": 1,
+    "repelled": 1,
+    "deaths": 0,
+    "joined": 0,
+    "infected": 0,
+    "cured": 0,
+    "turned": 0,
+    "level_ups": 2,
+    "biggest_horde": 6,
+    "days": [
+      {
+        "day": 1,
+        "food": 9,
+        "water": 10,
+        "people": 3,
+        "event": "rain"
+      },
+      {
+        "day": 2,
+        "food": 7,
+        "water": 17,
+        "people": 3,
+        "event": "rain"
+      },
+      {
+        "day": 3,
+        "food": 4,
+        "water": 19,
+        "people": 3,
+        "event": "raid"
+      }
+    ]
+  }
+}

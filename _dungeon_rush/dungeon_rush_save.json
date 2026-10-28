@@ -1,0 +1,64 @@
+{
+  "gold": 212,
+  "floor": 4,
+  "next_uid": 4,
+  "heroes": [
+    {
+      "name": "Arthur",
+      "class": "warrior",
+      "level": 5,
+      "xp": 80,
+      "hp": 77,
+      "max_hp": 77,
+      "atk": 16,
+      "def": 13,
+      "weapon": 1,
+      "armor": 2
+    },
+    {
+      "name": "Ren",
+      "class": "mage",
+      "level": 5,
+      "xp": 50,
+      "hp": 42,
+      "max_hp": 42,
+      "atk": 23,
+      "def": 6,
+      "weapon": 3,
+      "armor": null
+    },
+    {
+      "name": "sss",
+      "class": "archer",
+      "level": 2,
+      "xp": 20,
+      "hp": 37,
+      "max_hp": 37,
+      "atk": 12,
+      "def": 4,
+      "weapon": null,
+      "armor": null
+    }
+  ],
+  "bag": [
+    {
+      "uid": 1,
+      "key": "wooden_sword"
+    },
+    {
+      "uid": 2,
+      "key": "chainmail"
+    },
+    {
+      "uid": 3,
+      "key": "fire_staff"
+    }
+  ],
+  "log": {
+    "battles": 12,
+    "wins": 10,
+    "losses": 2,
+    "gold_earned": 635,
+    "gold_spent": 465
+  }
+}

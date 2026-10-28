@@ -1,0 +1,66 @@
+{
+  "day": 1,
+  "gold": 100,
+  "reputation": 45,
+  "herbs": {},
+  "shelf": {
+    "cough_syrup": 2,
+    "cure_all": 1
+  },
+  "prices": {},
+  "known": [
+    "cough_syrup",
+    "fever_tea",
+    "dream_drop",
+    "cure_all"
+  ],
+  "market": {
+    "mint": 5,
+    "ginger": 5,
+    "honey": 6,
+    "nettle": 6,
+    "glowshroom": 20,
+    "moonflower": 19,
+    "dragon_root": 22,
+    "phoenix": 33
+  },
+  "customers": [
+    {
+      "name": "ยายจันทร์",
+      "symptoms": [
+        "fever",
+        "ache"
+      ],
+      "budget": 120
+    },
+    {
+      "name": "หนูนา",
+      "symptoms": [
+        "insomnia",
+        "cough"
+      ],
+      "budget": 98
+    },
+    {
+      "name": "ชาวนาทอง",
+      "symptoms": [
+        "insomnia"
+      ],
+      "budget": 61
+    }
+  ],
+  "log": {
+    "income": 0,
+    "spent": 0,
+    "served": 0,
+    "turned_away": 0,
+    "explosions": 0,
+    "brewed": 2,
+    "sold": {},
+    "daily": []
+  },
+  "today": {
+    "income": 0,
+    "spent": 0
+  }
+}

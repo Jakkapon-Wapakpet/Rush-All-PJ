@@ -1,0 +1,131 @@
+{
+    "cases": [
+        {
+            "รหัส": "CASE-001",
+            "ชื่อ_th": "ห้องปิดตาย",
+            "ชื่อ_en": "The Locked Room",
+            "สถานะ": "closed",
+            "ระดับ": "medium",
+            "รายละเอียด_th": "ผู้เช่าห้อง 304 ถูกทำร้ายเวลาประมาณ 23:10 ห้องนี้เปิดได้ด้วยคีย์การ์ดเท่านั้น",
+            "รายละเอียด_en": "The tenant of room 304 was attacked at around 23:10. The room only opens with a key card.",
+            "ผู้ต้องสงสัย": [
+                {
+                    "รหัส": "S1",
+                    "ชื่อ_th": "มาลี (แม่บ้าน)",
+                    "ชื่อ_en": "Malee (Housekeeper)",
+                    "คำให้การ_th": "ฉันทำความสะอาดชั้น 3 เสร็จแล้วกลับบ้านตอน 4 ทุ่มค่ะ",
+                    "คำให้การ_en": "I finished cleaning the 3rd floor and went home at 22:00."
+                },
+                {
+                    "รหัส": "S2",
+                    "ชื่อ_th": "ธนา (เพื่อนบ้านห้อง 305)",
+                    "ชื่อ_en": "Thana (Neighbor in room 305)",
+                    "คำให้การ_th": "ผมออกไปซื้อของที่ร้านสะดวกซื้อตอนห้าทุ่ม กลับมาก็เห็นตำรวจแล้ว",
+                    "คำให้การ_en": "I went to the convenience store at 23:00. When I came back, the police were here."
+                },
+                {
+                    "รหัส": "S3",
+                    "ชื่อ_th": "วิชัย (ผู้จัดการอาคาร)",
+                    "ชื่อ_en": "Wichai (Building Manager)",
+                    "คำให้การ_th": "ผมนอนหลับอยู่ที่บ้านทั้งคืน ไม่ได้มาที่อาคารเลย",
+                    "คำให้การ_en": "I was asleep at home all night. I never came to the building."
+                }
+            ],
+            "คนร้าย": "S3",
+            "ตอบผิด": 0
+        },
+        {
+            "รหัส": "CASE-002",
+            "ชื่อ_th": "จดหมายฉบับสุดท้าย",
+            "ชื่อ_en": "The Last Letter",
+            "สถานะ": "closed",
+            "ระดับ": "easy",
+            "รายละเอียด_th": "จดหมายที่หายไปซ่อนความลับสำคัญ",
+            "รายละเอียด_en": "A missing letter hides an important secret."
+        },
+        {
+            "รหัส": "CASE-003",
+            "ชื่อ_th": "ภาพวาดที่หายไป",
+            "ชื่อ_en": "The Missing Painting",
+            "สถานะ": "open",
+            "ระดับ": "hard",
+            "รายละเอียด_th": "ภาพวาดชิ้นเอกของหอศิลป์ถูกขโมยไประหว่างเวลา 00:55 ถึง 01:20",
+            "รายละเอียด_en": "The gallery's masterpiece was stolen between 00:55 and 01:20.",
+            "ผู้ต้องสงสัย": [
+                {
+                    "รหัส": "S1",
+                    "ชื่อ_th": "นิดา (ภัณฑารักษ์)",
+                    "ชื่อ_en": "Nida (Curator)",
+                    "คำให้การ_th": "ฉันไปงานเลี้ยงวันเกิดเพื่อนที่ร้านอาหารจนถึงตีสองค่ะ",
+                    "คำให้การ_en": "I was at a friend's birthday party at a restaurant until 02:00."
+                },
+                {
+                    "รหัส": "S2",
+                    "ชื่อ_th": "สมชาย (ยามกะดึก)",
+                    "ชื่อ_en": "Somchai (Night Guard)",
+                    "คำให้การ_th": "ผมเดินตรวจชั้นสองตลอดทั้งคืน ไม่ได้เข้าห้องควบคุมเลยครับ",
+                    "คำให้การ_en": "I patrolled the second floor all night. I never entered the control room."
+                },
+                {
+                    "รหัส": "S3",
+                    "ชื่อ_th": "ต้น (นักศึกษาฝึกงาน)",
+                    "ชื่อ_en": "Ton (Intern)",
+                    "คำให้การ_th": "ผมกลับหอตั้งแต่ 6 โมงเย็นแล้วครับ",
+                    "คำให้การ_en": "I went back to my dorm at 18:00."
+                }
+            ],
+            "คนร้าย": "S2",
+            "ตอบผิด": 1
+        }
+    ],
+    "evidence": [
+        {
+            "รหัส": "EVD-001",
+            "รหัสคดี": "CASE-001",
+            "ชื่อ_th": "รอยรองเท้า",
+            "ชื่อ_en": "Footprints",
+            "รายละเอียด_th": "รอยรองเท้าผู้ชายเบอร์ 44 จากประตูเข้าไปในห้อง",
+            "รายละเอียด_en": "Men's size 44 shoe prints leading from the door into the room."
+        },
+        {
+            "รหัส": "EVD-002",
+            "รหัสคดี": "CASE-001",
+            "ชื่อ_th": "ใบเสร็จร้านสะดวกซื้อ",
+            "ชื่อ_en": "Convenience Store Receipt",
+            "รายละเอียด_th": "ใบเสร็จของธนา เวลา 23:05 กล้องในร้านถ่ายเขาไว้ได้จนถึง 23:30",
+            "รายละเอียด_en": "Thana's receipt at 23:05. The store camera shows him there until 23:30."
+        },
+        {
+            "รหัส": "EVD-003",
+            "รหัสคดี": "CASE-001",
+            "ชื่อ_th": "บันทึกคีย์การ์ด",
+            "ชื่อ_en": "Key Card Log",
+            "รายละเอียด_th": "ประตูห้อง 304 ถูกเปิดเวลา 23:10 ด้วยคีย์การ์ดของผู้จัดการอาคาร",
+            "รายละเอียด_en": "Room 304 was opened at 23:10 with the building manager's key card."
+        },
+        {
+            "รหัส": "EVD-004",
+            "รหัสคดี": "CASE-003",
+            "ชื่อ_th": "บันทึกกล้องวงจรปิด",
+            "ชื่อ_en": "CCTV Log",
+            "รายละเอียด_th": "กล้องถูกปิดจากห้องควบคุมช่วง 00:55-01:20 ด้วยรหัสที่มีแค่ยามและภัณฑารักษ์รู้",
+            "รายละเอียด_en": "The cameras were turned off from the control room from 00:55-01:20 using a code only the guard and the curator know."
+        },
+        {
+            "รหัส": "EVD-005",
+            "รหัสคดี": "CASE-003",
+            "ชื่อ_th": "รูปถ่ายงานเลี้ยง",
+            "ชื่อ_en": "Party Photo",
+            "รายละเอียด_th": "รูปในโซเชียลของเพื่อนนิดา ถ่ายที่ร้านอาหารเวลา 01:05 มีนิดาอยู่ในรูป",
+            "รายละเอียด_en": "A photo on Nida's friend's social media, taken at the restaurant at 01:05, shows Nida."
+        },
+        {
+            "รหัส": "EVD-006",
+            "รหัสคดี": "CASE-003",
+            "ชื่อ_th": "แก้วกาแฟในห้องควบคุม",
+            "ชื่อ_en": "Coffee Cup in the Control Room",
+            "รายละเอียด_th": "แก้วกาแฟที่ยังอุ่นอยู่ วางข้างแผงควบคุมกล้อง บนแก้วเขียนชื่อ 'สมชาย'",
+            "รายละเอียด_en": "A still-warm coffee cup next to the camera panel, with the name 'Somchai' written on it."
+        }
+    ]
+}
