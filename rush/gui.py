@@ -32,13 +32,18 @@ import menu
 import powers
 import storage
 import survivors
-from gui_theme import (COLORS, FONT, FONT_SMALL, FONT_SMALL_BOLD, FONT_BOLD, FONT_BIG, FONT_HUGE, FONT_LOGO,
-                       ScrollableFrame, ask_confirm, ask_text, flat_button, label, meter, open_dialog,
+from gui_theme import (COLORS, FONT, FONT_SMALL, FONT_SMALL_BOLD, FONT_BOLD, FONT_BIG, FONT_HUGE,
+                       ScrollableFrame, ask_confirm, ask_text, flat_button, label, meter, open_dialog, set_button_text,
                        picture, section_title, tk_safe, type_font, wait_dialog)
 from sprites import sprite, ZOMBIE_SPRITES
 
 NIGHT_LINE_DELAY = 350   # หน่วงเวลาระหว่างบรรทัดตอนเล่าเหตุการณ์กลางคืน (มิลลิวินาที)
 TABS = ["gate", "build", "zombies", "log"]
+FONT_LOGO = ("Courier", 20, "bold")
+
+# ชื่องานแบบสั้นสำหรับปุ่มบนการ์ด
+JOB_SHORT = {"scavenge": {"th": "หาเสบียง", "en": "Scavenge"}, "guard": {"th": "เฝ้ายาม", "en": "Guard"},
+             "heal": {"th": "รักษา", "en": "Heal"}, "rest": {"th": "พักผ่อน", "en": "Rest"}}
 
 
 def hp_color(hp: int) -> str:
@@ -50,9 +55,15 @@ def hp_color(hp: int) -> str:
     return COLORS["red"]
 
 
-def skills_text(skills: dict) -> str:
-    """ทักษะแบบดาว เช่น 'หาเสบียง ★★★★☆   ต่อสู้ ★★☆☆☆   รักษา ★☆☆☆☆'"""
-    return "   ".join(f"{tr(SKILLS[s])} {survivors.stars(level)}" for s, level in skills.items())
+def skills_grid(parent: tk.Widget, skills: dict, bg: str) -> tk.Frame:
+    """ทักษะแบบดาว 3 คอลัมน์: ชื่อทักษะอยู่บน ดาวอยู่ล่าง (ดาวทอง = เก่ง)"""
+    grid = tk.Frame(parent, bg=bg)
+    for column, (skill, level) in enumerate(skills.items()):
+        grid.columnconfigure(column, weight=1, uniform="skills")
+        label(grid, tr(SKILLS[skill]), bg, COLORS["muted"], FONT_SMALL).grid(row=0, column=column, sticky="w")
+        label(grid, survivors.stars(level), bg, COLORS["amber"] if level >= 4 else COLORS["text"],
+              FONT_SMALL_BOLD).grid(row=1, column=column, sticky="w")
+    return grid
 
 
 def pretty(line: str) -> str:
@@ -114,7 +125,7 @@ class ShelterApp:
         # ปุ่มด้านขวา pack ก่อนแถบสถานะ เพื่อไม่ให้ถูกดันจนหลุดจอ
         self.lang_buttons = {}
         for lang, text in (("en", "EN"), ("th", "ไทย")):
-            button = tk.Button(header, text=text, font=FONT_BOLD, width=4, relief="flat", bd=0,
+            button = tk.Button(header, text=text, font=FONT_SMALL_BOLD, width=4, relief="flat", bd=0,
                                cursor="hand2", highlightthickness=0, command=lambda l=lang: self.change_language(l))
             button.pack(side="right", padx=2)
             self.lang_buttons[lang] = button
@@ -124,7 +135,7 @@ class ShelterApp:
         self.help_button.pack(side="right", padx=(0, 6))
 
         self.top_bar = tk.Frame(header, bg=COLORS["bg"])
-        self.top_bar.pack(side="left", padx=18)
+        self.top_bar.pack(side="left", padx=14)
 
         tk.Frame(self.root, bg=COLORS["accent"], height=2).pack(fill="x", padx=20)
 
@@ -190,7 +201,7 @@ class ShelterApp:
         bg = COLORS["bg"]
 
         day_box = tk.Frame(self.top_bar, bg=bg)
-        day_box.pack(side="left", padx=(0, 22))
+        day_box.pack(side="left", padx=(0, 14))
         day_text = get_text(f"วันที่ {state['day']}/{GOAL_DAY}", f"DAY {state['day']}/{GOAL_DAY}")
         tk.Label(day_box, text=day_text, font=type_font(day_text, 13), bg=bg, fg=COLORS["text"]).pack(anchor="w")
         track = tk.Canvas(day_box, width=GOAL_DAY * 11, height=10, bg=bg, highlightthickness=0)
@@ -208,13 +219,12 @@ class ShelterApp:
             track.create_rectangle(x, 0, x + 8, 10, fill=color, width=0)
 
         for key in RESOURCES:
-            chip = tk.Frame(self.top_bar, bg=COLORS["panel"], padx=10, pady=4)
-            chip.pack(side="left", padx=4)
+            chip = tk.Frame(self.top_bar, bg=COLORS["panel"], padx=7, pady=3)
+            chip.pack(side="left", padx=3)
             picture(chip, sprite(key, 2), COLORS["panel"]).pack(side="left")
             text_box = tk.Frame(chip, bg=COLORS["panel"])
             text_box.pack(side="left", padx=(6, 0))
-            label(text_box, f"{tr(RESOURCES[key]['name'])} {state['resources'][key]}", COLORS["panel"],
-                  font=FONT_BOLD).pack(anchor="w")
+            label(text_box, str(state["resources"][key]), COLORS["panel"], font=FONT_BOLD).pack(anchor="w")
             if key in ("food", "water"):
                 days = camp.days_left(key)
                 color = COLORS["red"] if days <= 1 else COLORS["amber"] if days <= 2 else COLORS["muted"]
@@ -226,8 +236,8 @@ class ShelterApp:
             button.config(bg=COLORS["accent"] if active else COLORS["panel"],
                           fg=COLORS["ink"] if active else COLORS["muted"],
                           activebackground=COLORS["accent_dark"])
-        self.help_button.config(text=tk_safe(get_text("? วิธีเล่น", "? How to Play")))
-        self.new_button.config(text=tk_safe(get_text("เริ่มเกมใหม่", "New Game")))
+        set_button_text(self.help_button, get_text("? วิธีเล่น", "? Help"), 10)
+        set_button_text(self.new_button, get_text("เริ่มเกมใหม่", "New Game"), 10)
 
     # ---------- การ์ดผู้รอดชีวิต ----------
 
@@ -258,6 +268,9 @@ class ShelterApp:
         state = storage.state
         banner = tk.Frame(parent, bg=COLORS["card"], padx=16, pady=12)
         banner.grid(row=0, column=0, columnspan=2, sticky="ew", padx=(0, 10), pady=(0, 10))
+        # ปุ่ม pack ก่อนข้อความ เพื่อไม่ให้ข้อความยาวดันปุ่มหลุดจอ
+        flat_button(banner, get_text("เริ่มเกมใหม่", "New Game"), self.new_game, COLORS["accent"],
+                    COLORS["accent_dark"], fg=COLORS["ink"]).pack(side="right")
         if state["status"] == "won":
             saved = len(day.rescued())
             stars, title = day.ending_grade(saved)
@@ -266,9 +279,7 @@ class ShelterApp:
                             f"Rescued! {saved} survivor(s) made it — {title}")
         else:
             text = get_text("ศูนย์พักพิงล่มสลาย... ไม่มีใครรอด", "The shelter has fallen... No one survived.")
-        label(banner, text, COLORS["card"], font=FONT_BIG).pack(side="left", padx=14)
-        flat_button(banner, get_text("เริ่มเกมใหม่", "New Game"), self.new_game, COLORS["accent"],
-                    COLORS["accent_dark"], fg=COLORS["ink"]).pack(side="right")
+        label(banner, text, COLORS["card"], font=FONT_BIG, wraplength=420, justify="left").pack(side="left", padx=14)
 
     def person_card(self, parent: tk.Widget, person: dict) -> tk.Frame:
         """การ์ดของผู้รอดชีวิต 1 คน"""
@@ -303,16 +314,19 @@ class ShelterApp:
             meter(xp_row, ratio, COLORS["purple"], height=5).pack(side="left", fill="x", expand=True, padx=(8, 0))
         else:
             label(xp_row, "MAX", bg, COLORS["amber"], FONT_SMALL_BOLD).pack(side="left", padx=8)
-        label(info, tr(power["about"]), bg, COLORS["muted"], FONT_SMALL, anchor="w").pack(fill="x")
+        label(info, tr(power["about"]), bg, COLORS["muted"], FONT_SMALL, anchor="w", justify="left",
+              wraplength=260).pack(fill="x")
 
-        label(card, skills_text(person["skills"]), bg, COLORS["text"], FONT_SMALL, anchor="w").pack(fill="x", pady=(8, 0))
+        skills_grid(card, person["skills"], bg).pack(fill="x", pady=(8, 0))
 
         if person["infected"]:
             warn = tk.Frame(card, bg=COLORS["red_dark"], padx=8, pady=3)
             warn.pack(fill="x", pady=(6, 0))
             label(warn, survivors.infection_text(person) + get_text("  ต้องได้ยา!", "  Needs medicine!"),
-                  COLORS["red_dark"], "white", FONT_SMALL_BOLD).pack(anchor="w")
+                  COLORS["red_dark"], "white", FONT_SMALL_BOLD, wraplength=340, justify="left").pack(anchor="w")
 
+        if storage.state["status"] != "playing":
+            return card
         jobs = tk.Frame(card, bg=bg)
         jobs.pack(fill="x", pady=(8, 0))
         if person["job"] == "inspect":
@@ -320,7 +334,7 @@ class ShelterApp:
                   bg, COLORS["blue"], FONT_SMALL_BOLD).pack(anchor="w")
             return card
 
-        best = survivors.recommend_job(person) if storage.state["status"] == "playing" else None
+        best = survivors.recommend_job(person)
         for column, job in enumerate(survivors.assignable_jobs()):
             jobs.columnconfigure(column, weight=1, uniform="jobs")
             chosen = person["job"] == job
@@ -331,7 +345,7 @@ class ShelterApp:
                 color, fg = COLORS["card_hover"], COLORS["amber"] if job == best else COLORS["text"]
             else:
                 color, fg = COLORS["disabled"], COLORS["muted"]
-            text = tr(JOBS[job]["name"]) + (" ★" if job == best and not chosen else "")
+            text = tr(JOB_SHORT[job]) + (" ★" if job == best and not chosen else "")
             button = flat_button(jobs, text, lambda j=job: self.assign(person, j), color,
                                  COLORS["accent_dark"] if allowed else COLORS["disabled"], fg=fg, size=9, padx=4, pady=4)
             button.grid(row=0, column=column, sticky="ew", padx=1)
@@ -346,7 +360,8 @@ class ShelterApp:
         names = {"gate": get_text("ประตู", "Gate"), "build": get_text("สร้าง", "Build"),
                  "zombies": get_text("ซอมบี้", "Zombies"), "log": get_text("บันทึก", "Log")}
         for key in TABS:
-            text = names[key] + (" •" if key == "gate" and storage.state["wanderer"] else "")
+            waiting = storage.state["wanderer"] and storage.state["status"] == "playing"
+            text = names[key] + (" (!)" if key == "gate" and waiting else "")
             active = key == self.tab
             button = flat_button(self.tab_bar, text, lambda k=key: self.switch_tab(k),
                                  COLORS["accent"] if active else COLORS["panel"],
@@ -369,6 +384,8 @@ class ShelterApp:
         state = storage.state
         wanderer = state["wanderer"]
         section_title(parent, get_text("ประตูศูนย์พักพิง", "SHELTER GATE"), bg).pack(anchor="w")
+        if state["status"] != "playing":
+            wanderer = None
         if wanderer is None:
             picture(parent, sprite("stranger", 6, shadow=True), bg).pack(pady=(30, 10))
             label(parent, get_text("ไม่มีใครอยู่ที่ประตูวันนี้", "No one is at the gate today."), bg, COLORS["muted"],
@@ -390,7 +407,7 @@ class ShelterApp:
         label(info, f"{tr(power['name'])} Lv.{wanderer['level']}", COLORS["card"], COLORS["purple"], FONT_BOLD).pack(anchor="w", pady=(4, 0))
         label(info, tr(power["about"]), COLORS["card"], COLORS["muted"], FONT_SMALL, wraplength=300,
               justify="left").pack(anchor="w")
-        label(card, skills_text(wanderer["skills"]), COLORS["card"], font=FONT_SMALL).pack(anchor="w", pady=(10, 0))
+        skills_grid(card, wanderer["skills"], COLORS["card"]).pack(fill="x", pady=(10, 0))
 
         if wanderer["checked"] and wanderer["infected"]:
             result, color = get_text("ผลตรวจ: พบรอยกัด! ติดเชื้อ", "Inspection: BITE FOUND! Infected"), COLORS["red"]
@@ -558,11 +575,11 @@ class ShelterApp:
         guards = sum(1 for p in storage.state["survivors"] if p["job"] == "guard")
         self.defense_label.config(text=tk_safe(get_text(f"พลังป้องกันคืนนี้ {day.defense()}\nคนเฝ้ายาม {guards} คน",
                                                         f"Defense tonight {day.defense()}\n{guards} guard(s)")))
-        self.auto_button.config(text=tk_safe(get_text("จัดงานอัตโนมัติ", "Auto-assign")))
+        set_button_text(self.auto_button, get_text("จัดงานอัตโนมัติ", "Auto-assign"), 12)
         if playing:
-            self.end_button.config(text=tk_safe(get_text(f"จบวันที่ {storage.state['day']}  ▶", f"End Day {storage.state['day']}  ▶")))
+            set_button_text(self.end_button, get_text(f"จบวันที่ {storage.state['day']}  ▶", f"End Day {storage.state['day']}  ▶"), 13)
         else:
-            self.end_button.config(text=tk_safe(get_text("เริ่มเกมใหม่  ▶", "New Game  ▶")))
+            set_button_text(self.end_button, get_text("เริ่มเกมใหม่  ▶", "New Game  ▶"), 13)
 
     # ---------- การกระทำ (เรียกฟังก์ชันกลาง do_* ชุดเดียวกับ Terminal) ----------
 
@@ -773,7 +790,9 @@ class ShelterApp:
     def show_help(self) -> None:
         """หน้าต่างวิธีเล่น (ข้อความเดียวกับ Terminal)"""
         dialog = open_dialog(self.root, get_text("วิธีเล่น", "HOW TO PLAY"), COLORS["accent"])
-        text = "\n".join(tk_safe(line) if line.strip() else "" for line in menu.how_to_play_text().split("\n"))
+        # เก็บย่อหน้าเดิมไว้ (tk_safe ตัดช่องว่างหัวบรรทัดออก)
+        text = "\n".join(" " * (len(line) - len(line.lstrip())) + tk_safe(line)
+                         for line in menu.how_to_play_text().split("\n"))
         tk.Label(dialog, text=text, font=FONT, justify="left", bg=COLORS["panel"], fg=COLORS["text"],
                  padx=28).pack(anchor="w")
         close = flat_button(dialog, get_text("เข้าใจแล้ว", "Got it"), dialog.destroy, COLORS["accent"],

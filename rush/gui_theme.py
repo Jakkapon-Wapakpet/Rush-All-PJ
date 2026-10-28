@@ -85,6 +85,11 @@ def flat_button(parent: tk.Widget, text: str, command, color: str = None, hover:
     return button
 
 
+def set_button_text(button: tk.Button, text: str, size: int = 11) -> None:
+    """เปลี่ยนข้อความของปุ่ม พร้อมเลือกฟอนต์ใหม่ (ภาษาไทยห้ามใช้ Courier)"""
+    button.config(text=tk_safe(text), font=type_font(text, size))
+
+
 def meter(parent: tk.Widget, ratio: float, color: str, height: int = 8) -> tk.Canvas:
     """แถบค่า (เช่น HP / XP) วาดใหม่อัตโนมัติเมื่อขนาดเปลี่ยน"""
     canvas = tk.Canvas(parent, height=height, bg=COLORS["disabled"], bd=0, highlightthickness=0)
