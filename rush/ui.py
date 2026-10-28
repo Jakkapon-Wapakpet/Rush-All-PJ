@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-UI Module - LAST SHELTER
+UI Module - GHOST REALM (หลุดมิติผี)
 ตัวช่วยรับ input และแสดงหัวข้อที่ทุกเมนูใช้ร่วมกัน
 Shared input helpers and headings.
 """

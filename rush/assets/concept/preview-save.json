@@ -1,0 +1,79 @@
+{
+  "day": 1,
+  "status": "playing",
+  "difficulty": "normal",
+  "resources": {
+    "food": 7,
+    "water": 7,
+    "scrap": 6,
+    "medicine": 2
+  },
+  "survivors": [
+    {
+      "name": "เคน",
+      "hp": 100,
+      "skills": {
+        "scavenge": 4,
+        "guard": 2,
+        "heal": 1
+      },
+      "job": null,
+      "infected": 0,
+      "look": "man"
+    },
+    {
+      "name": "แพร",
+      "hp": 100,
+      "skills": {
+        "scavenge": 2,
+        "guard": 1,
+        "heal": 4
+      },
+      "job": null,
+      "infected": 0,
+      "look": "woman"
+    },
+    {
+      "name": "บิ๊ก",
+      "hp": 100,
+      "skills": {
+        "scavenge": 1,
+        "guard": 4,
+        "heal": 1
+      },
+      "job": null,
+      "infected": 0,
+      "look": "big"
+    }
+  ],
+  "buildings": [],
+  "wanderer": null,
+  "omen": null,
+  "prepared": [],
+  "light": "normal",
+  "vow": null,
+  "calm": false,
+  "grudge": 0,
+  "tickets": 0,
+  "fallen": [],
+  "visits": {},
+  "merit_day": 0,
+  "escaped": false,
+  "log": {
+    "gathered": {
+      "food": 0,
+      "water": 0,
+      "scrap": 0,
+      "medicine": 0
+    },
+    "raids": 0,
+    "repelled": 0,
+    "deaths": 0,
+    "joined": 0,
+    "infected": 0,
+    "cured": 0,
+    "turned": 0,
+    "biggest_horde": 0,
+    "days": []
+  }
+}

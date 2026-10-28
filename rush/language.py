@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Language Module - LAST SHELTER
+Language Module - GHOST REALM (หลุดมิติผี)
 จัดการระบบภาษา (ไทย/อังกฤษ) และฟังก์ชันช่วยเหลือด้านหน้าจอ
 Bilingual localization (Thai/English) and screen helper utilities.
 """
@@ -46,8 +46,8 @@ def choose_language() -> None:
     while True:
         clear_screen()
         print("=" * 40)
-        print("       🧟  LAST SHELTER  🧟")
-        print("  Zombie Survival / เอาชีวิตรอด")
+        print("   👻  หลุดมิติผี / GHOST REALM  👻")
+        print("  Ghost Survival / เอาชีวิตรอดในมิติผี")
         print("=" * 40)
         print("1. ภาษาไทย (Thai)")
         print("2. English")

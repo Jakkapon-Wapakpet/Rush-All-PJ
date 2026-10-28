@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-28T16:55:40.4477918Z",
+  "title": "Design System: มิติผี — Ghost Realm",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "displayName": "Lantern amber",
+        "role": "primary"
+      },
+      "job": {
+        "displayName": "Moss work controls",
+        "role": "secondary"
+      },
+      "red": {
+        "displayName": "Danger coral",
+        "role": "tertiary"
+      },
+      "bg": {
+        "displayName": "Midnight blue",
+        "role": "neutral"
+      }
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": []
+  },
+  "components": [],
+  "narrative": {
+    "overview": "A native Tkinter shelter-management game with colored Nang Talung figures, a lantern-lit pavilion, dark blue-green surfaces and parchment text. This records implemented conversation-approved direction, not measured mockup reproduction.",
+    "keyCharacteristics": [
+      "Scene above three-column survivor roster",
+      "Visitor and management tabs on the right",
+      "Persistent daily-action footer",
+      "Colored clothing, items and buttons"
+    ],
+    "rules": [
+      {
+        "section": "colors",
+        "body": "Preserve amber for primary decisions, moss for work and coral for danger while retaining colors in clothing, items and landscape.",
+        "name": "The Color Role Rule"
+      },
+      {
+        "section": "typography",
+        "body": "Keep names, status, numbers and controls as native text; portrait artwork contains no baked-in interface copy.",
+        "name": "The Live Text Rule"
+      }
+    ],
+    "dos": [
+      "Use the shared stage camera for people and scenery.",
+      "Keep the pavilion roof visible and actors grounded in the yard.",
+      "Keep the name มิติผี."
+    ],
+    "donts": [
+      "Restore the obsolete grayscale direction.",
+      "Claim every dialog or English state was visually verified from the three reference captures."
+    ]
+  }
+}

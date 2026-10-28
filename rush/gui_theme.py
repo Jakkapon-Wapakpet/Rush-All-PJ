@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GUI Theme Module - LAST SHELTER (Bonus)
+GUI Theme Module - GHOST REALM (หลุดมิติผี) (Bonus)
 สี ฟอนต์ และชิ้นส่วนหน้าจอที่ทุกส่วนของ GUI ใช้ร่วมกัน
 Shared colors, fonts, and widgets for the GUI.
 """
@@ -9,24 +9,29 @@ import tkinter as tk
 
 from language import get_text
 
-# ชุดสี "เมืองร้างยามค่ำคืน"
+# ชุดสี "มิติผียามค่ำคืน"
 COLORS = {
-    "bg": "#101311",          # พื้นหลังหน้าต่าง
-    "panel": "#181d1a",       # พื้นแผง
-    "card": "#222925",        # พื้นการ์ด
-    "card_hover": "#2c3530",
-    "line": "#36413a",        # เส้นขอบ
-    "text": "#e6e8df",        # ตัวอักษรหลัก
-    "muted": "#87928a",       # ตัวอักษรรอง
-    "accent": "#a3d65a",      # เขียวสารพิษ (สีหลักของธีม)
-    "accent_dark": "#7aa83a",
-    "ink": "#141812",         # ตัวอักษรบนพื้นสีหลัก
-    "amber": "#e8a83a",
-    "red": "#d2463b",
-    "red_dark": "#9c3029",
-    "blue": "#5aa9e6",
-    "purple": "#9b7be0",
-    "disabled": "#2f3632",
+    "bg": "#0e0b13",          # พื้นหลังหน้าต่าง (ม่วงดำ)
+    "panel": "#16111d",       # พื้นแผง
+    "card": "#201929",        # พื้นการ์ด
+    "card_hover": "#2b2236",
+    "line": "#3a2f48",        # เส้นขอบ
+    "text": "#ece6f2",        # ตัวอักษรหลัก
+    "muted": "#8e84a0",       # ตัวอักษรรอง
+    "accent": "#7fe0c4",      # เขียววิญญาณเรืองแสง (สีหลักของธีม)
+    "accent_dark": "#4fb39a",
+    "ink": "#100c15",         # ตัวอักษรบนพื้นสีหลัก
+    "amber": "#f0b44c",       # แสงเทียน
+    "red": "#d93f55",         # สีเลือด
+    "red_dark": "#972a3b",
+    "blue": "#7aa5ef",
+    "purple": "#b48cf0",
+    "disabled": "#2a2233",
+    "screen": "#e8a548",      # จอผ้าหนังตะลุงที่มีไฟส่อง (พื้นหลังของภาพเงาทุกภาพ)
+    "screen_edge": "#c47a34", # ขอบจอที่ไฟส่องไม่ถึง / ควัน
+    "moon": "#f6c76a",        # พระจันทร์หลังจอ
+    "puppet": "#1a0f0c",      # สีตัวหนัง (เงา) ใช้วาดพื้นและตัวหนังสือบนจอผ้า
+    "far": "#8f5024",         # เงาของฉากหลัง (ศาลา) จางกว่าตัวหนัง เพื่อให้คนที่ยืนหน้าศาลาเด่นขึ้น
 }
 
 FONT = ("TkDefaultFont", 11)
@@ -91,7 +96,7 @@ def set_button_text(button: tk.Button, text: str, size: int = 11) -> None:
 
 
 def meter(parent: tk.Widget, ratio: float, color: str, height: int = 8) -> tk.Canvas:
-    """แถบค่า (เช่น HP / XP) วาดใหม่อัตโนมัติเมื่อขนาดเปลี่ยน"""
+    """แถบค่า (เช่น HP) วาดใหม่อัตโนมัติเมื่อขนาดเปลี่ยน"""
     canvas = tk.Canvas(parent, height=height, bg=COLORS["disabled"], bd=0, highlightthickness=0)
     ratio = max(0.0, min(1.0, ratio))
 
@@ -105,9 +110,9 @@ def meter(parent: tk.Widget, ratio: float, color: str, height: int = 8) -> tk.Ca
     return canvas
 
 
-def picture(parent: tk.Widget, image: tk.PhotoImage, bg: str) -> tk.Label:
-    """แสดงภาพพิกเซลอาร์ต (จาก sprites.py) บนพื้นสีที่กำหนด"""
-    return tk.Label(parent, image=image, bg=bg, bd=0)
+def picture(parent: tk.Widget, image: tk.PhotoImage) -> tk.Label:
+    """แสดงภาพเงา (จาก sprites.py) บนจอผ้าสีส้มเล็กๆ เหมือนการเล่นหนังตะลุง"""
+    return tk.Label(parent, image=image, bg=COLORS["screen"], bd=0, padx=4, pady=4)
 
 
 class ScrollableFrame(tk.Frame):
@@ -165,7 +170,7 @@ class ScrollableFrame(tk.Frame):
 def open_dialog(root: tk.Tk, title: str, color: str) -> tk.Toplevel:
     """สร้างหน้าต่างย่อยในธีม (แถบสีด้านบน + หัวข้อ)"""
     dialog = tk.Toplevel(root, bg=COLORS["panel"])
-    dialog.title("LAST SHELTER")
+    dialog.title(get_text("หลุดมิติผี", "GHOST REALM"))
     dialog.transient(root)
     dialog.resizable(False, False)
     tk.Frame(dialog, bg=color, height=5).pack(fill="x")
