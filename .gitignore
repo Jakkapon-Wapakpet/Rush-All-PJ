@@ -1,6 +1,7 @@
 # เก็บเฉพาะโฟลเดอร์ rush (ที่เหลือในรากโปรเจกต์ไม่เข้า git)
 /*
 !/.gitignore
+!/README.md
 !/rush/
 
 # Python bytecode
