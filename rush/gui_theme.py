@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GUI Theme Module - GHOST REALM (หลุดมิติผี) (Bonus)
+GUI Theme Module - GHOST REALM (มิติผี) (Bonus)
 สี ฟอนต์ และชิ้นส่วนหน้าจอโทนหนังตะลุงสีที่ทุกส่วนของ GUI ใช้ร่วมกัน
 Shared colors, fonts, and widgets for the GUI.
 """
@@ -52,8 +52,8 @@ def tk_safe(text: str) -> str:
 
 
 def clean(text) -> str:
-    """ข้อความที่แสดงบนจอ: ตัดอักขระที่ Tk แสดงไม่ได้ และใช้ชื่อเกมแบบสั้น"""
-    return tk_safe(str(text).replace("หลุดมิติผี", "มิติผี"))
+    """ข้อความที่แสดงบนจอ: ตัดอักขระที่ Tk แสดงไม่ได้"""
+    return tk_safe(str(text))
 
 
 def font(text: str = "", size: int = 11) -> tuple:

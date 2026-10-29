@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Realm Module - GHOST REALM (หลุดมิติผี)
+Realm Module - GHOST REALM (มิติผี)
 ระบบเสริมของระดับปกติขึ้นไป: สถานที่หาของ ลางบอกเหตุ ของแก้ผี ไฟกลางคืน บนบานศาลกล่าว ความแค้นของมิติผี
 ผีเพื่อน ชิ้นส่วนตั๋ว และคนแปลกหน้าที่มีเรื่องราว
 Advanced systems (Normal and Nightmare): locations, omens, counters, lights, vows, grudge, fallen friends, tickets.

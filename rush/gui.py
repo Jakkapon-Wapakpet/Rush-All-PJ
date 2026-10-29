@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GUI - GHOST REALM (หลุดมิติผี) (Bonus)
+GUI - GHOST REALM (มิติผี) (Bonus)
 ส่วนกลางของหน้าต่าง Tkinter: การกระทำของผู้เล่น (เรียก do_* ชุดเดียวกับ Terminal)
 และแท็บคืนนี้/ศาลเจ้า/บันทึก ส่วนหน้าตาหนังตะลุงอยู่ใน talung_ui/ (TalungApp สืบทอดจาก ShelterApp)
 Shared Tkinter game logic; the Nang Talung look lives in talung_ui/.

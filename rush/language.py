@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Language Module - GHOST REALM (หลุดมิติผี)
+Language Module - GHOST REALM (มิติผี)
 จัดการระบบภาษา (ไทย/อังกฤษ) และฟังก์ชันช่วยเหลือด้านหน้าจอ
 Bilingual localization (Thai/English) and screen helper utilities.
 """
@@ -46,7 +46,7 @@ def choose_language() -> None:
     while True:
         clear_screen()
         print("=" * 40)
-        print("   👻  หลุดมิติผี / GHOST REALM  👻")
+        print("   👻  มิติผี / GHOST REALM  👻")
         print("  Ghost Survival / เอาชีวิตรอดในมิติผี")
         print("=" * 40)
         print("1. ภาษาไทย (Thai)")

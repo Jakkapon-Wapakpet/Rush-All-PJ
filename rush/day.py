@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Day Module - GHOST REALM (หลุดมิติผี)
+Day Module - GHOST REALM (มิติผี)
 จบวัน: ผลของงาน → สิ่งก่อสร้างผลิตของ → กินอาหาร/ดื่มน้ำ → ผีสิงลุกลาม → เหตุการณ์กลางคืน → ผู้เสียชีวิต → ชนะ/แพ้
 และบันทึกศาลา (สถิติ)
 End of day: jobs, building output, eating, possession, night events, deaths, win/lose; plus the shelter log.

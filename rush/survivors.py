@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Survivors Module - GHOST REALM (หลุดมิติผี)
+Survivors Module - GHOST REALM (มิติผี)
 ผู้รอดชีวิต: ดูสถานะ มอบหมายงาน แนะนำงานอัตโนมัติ ตรวจและรับคนเข้าศาลา เปลี่ยนชื่อ และไล่ออก
 Survivors: status, job assignment, auto-assign, recruiting, renaming, and exiling.
 """

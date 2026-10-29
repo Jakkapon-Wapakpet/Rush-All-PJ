@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Menu Module - GHOST REALM (หลุดมิติผี)
+Menu Module - GHOST REALM (มิติผี)
 2 หน้าจอหลัก: หน้าแรก (เริ่ม/เล่นต่อ วิธีเล่น ผลเกม ภาษา) และหน้าเล่นเกมในแต่ละวัน (แดชบอร์ด + คำสั่ง)
 Two main screens: the title screen and the in-game day screen (dashboard + actions).
 """
@@ -8,7 +8,7 @@ Two main screens: the title screen and the in-game day screen (dashboard + actio
 from language import get_text, clear_screen, pause, choose_language
 from data import (RESOURCES, SKILLS, DIFFICULTIES, COUNTERS, LIGHTS, VOWS, MAX_PEOPLE, MAX_HP, MAX_GRUDGE,
                   TICKET_PIECES, tr)
-from ui import heading, ask_yes_no, choose_from_list
+from ui import heading, ask_yes_no, choose_from_list, show_banner
 import shelter
 import day
 import realm
@@ -23,11 +23,13 @@ BACK_TH, BACK_EN = "\nกด Enter เพื่อกลับ...", "\nPress Ent
 def display_title() -> None:
     """แสดงหน้าแรก (ข้อ 1 คือเริ่มเล่น/เล่นต่อเสมอ)"""
     state = storage.state
-    print("=" * 50)
-    print(get_text("              👻   ห ลุ ด มิ ติ ผี   👻", "          👻   G H O S T   R E A L M   👻"))
-    print(get_text(f"       รอดให้ครบ {storage.goal_day()} วัน แล้วประตูมิติจะเปิด",
-                   f"     Survive {storage.goal_day()} days until the portal opens"))
-    print("=" * 50)
+    print("=" * 62)
+    show_banner()
+    print()
+    print(get_text("                    👻   มิ ติ ผี   👻", "              👻   G H O S T   R E A L M   👻"))
+    print(get_text(f"             รอดให้ครบ {storage.goal_day()} วัน แล้วประตูมิติจะเปิด",
+                   f"           Survive {storage.goal_day()} days until the portal opens"))
+    print("=" * 62)
     if state["status"] == "playing" and state["day"] > 1:
         level = tr(DIFFICULTIES[state["difficulty"]]["name"])
         print(get_text(f" 1. ▶ เล่นต่อ (วันที่ {state['day']}/{storage.goal_day()}, ระดับ{level})",
@@ -206,7 +208,7 @@ def display_dashboard() -> None:
     state = storage.state
     print("=" * 62)
     level = DIFFICULTIES[state["difficulty"]]
-    print(get_text(f"  👻 หลุดมิติผี   วันที่ {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_PEOPLE}   "
+    print(get_text(f"  👻 มิติผี   วันที่ {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_PEOPLE}   "
                    f"{level['icon']} {tr(level['name'])}",
                    f"  👻 GHOST REALM   Day {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_PEOPLE}   "
                    f"{level['icon']} {tr(level['name'])}"))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Data Module - GHOST REALM (หลุดมิติผี)
+Data Module - GHOST REALM (มิติผี)
 ข้อมูลคงที่ของเกม: ทรัพยากร งาน สิ่งก่อสร้าง ผู้รอดชีวิตเริ่มต้น และค่าความยาก
 Static data: resources, jobs, buildings, starting survivors, and difficulty settings.
 """

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Storage Module - GHOST REALM (หลุดมิติผี)
+Storage Module - GHOST REALM (มิติผี)
 เก็บสถานะของศาลา (วัน ทรัพยากร ผู้รอดชีวิต สิ่งก่อสร้าง สถิติ) และบันทึก/โหลด JSON
 Shelter state plus JSON save/load.
 """
