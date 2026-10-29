@@ -11,7 +11,7 @@ from ui import heading, choose_from_list
 import storage
 
 # ผลผลิตต่อวันของสิ่งก่อสร้าง (ศาลพระภูมิให้น้ำมนต์ 1 ทุก 2 วัน คิดเฉลี่ยเป็น 0.5)
-DAILY_OUTPUT = {"garden": ("food", 1), "collector": ("water", 1), "clinic": ("medicine", 0.5)}
+DAILY_OUTPUT = {"vegetable_patch": ("food", 1), "rain_barrel": ("water", 1), "spirit_house": ("holy_water", 0.5)}
 
 
 def resource_label(key: str) -> str:
@@ -103,8 +103,8 @@ def build() -> None:
         info = BUILDINGS[key]
         done = get_text("  ✔ สร้างแล้ว", "  ✔ built") if key in storage.state["buildings"] else ""
         print(f"{number}. {info['icon']} {tr(info['name']):<16} {cost_text(build_cost(key)):<26} {tr(info['about'])}{done}")
-    print(get_text(f"\nมีธูปเทียน {storage.state['resources']['scrap']}  น้ำ {storage.state['resources']['water']}",
-                   f"\nIncense {storage.state['resources']['scrap']}  Water {storage.state['resources']['water']}"))
+    print(get_text(f"\nมีธูปเทียน {storage.state['resources']['incense']}  น้ำ {storage.state['resources']['water']}",
+                   f"\nIncense {storage.state['resources']['incense']}  Water {storage.state['resources']['water']}"))
 
     key = choose_from_list(keys, "เลือกสิ่งก่อสร้าง", "Choose a building")
     if key is None:

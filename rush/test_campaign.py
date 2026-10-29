@@ -1,5 +1,6 @@
 """Campaign boundary and pacing checks, using temporary saves only."""
 import copy
+import json
 import random
 import unittest
 from pathlib import Path
@@ -32,7 +33,7 @@ class CampaignTests(unittest.TestCase):
         storage.state.update(self.original)
         set_language(self.language)
 
-    def protected_camp(self, difficulty):
+    def protected_shelter(self, difficulty):
         storage.new_game(difficulty)
         storage.state["resources"] = dict.fromkeys(data.RESOURCES, 10000)
         # Remove survival randomness to exercise actual day/ending transitions.
@@ -42,7 +43,7 @@ class CampaignTests(unittest.TestCase):
     def test_full_campaign_ends_only_on_its_final_night(self):
         for difficulty, duration in (("easy", 15), ("normal", 20), ("nightmare", 25)):
             with self.subTest(difficulty=difficulty):
-                self.protected_camp(difficulty)
+                self.protected_shelter(difficulty)
                 rng = random.Random(31)
                 for number in range(1, duration + 1):
                     self.assertEqual(storage.state["day"], number)
@@ -69,9 +70,9 @@ class CampaignTests(unittest.TestCase):
                 storage.state["day"] = number
                 realm.make_omen(random.Random(number))
                 for seed in range(8):
-                    horde = day.make_horde(random.Random(seed))
-                    self.assertTrue(all(schedule[level - 1] <= number for level in horde))
-                    self.assertEqual(5 in horde, number == storage.goal_day())
+                    wave = day.make_wave(random.Random(seed))
+                    self.assertTrue(all(schedule[level - 1] <= number for level in wave))
+                    self.assertEqual(5 in wave, number == storage.goal_day())
                 if realm.advanced():
                     self.assertEqual(storage.state["omen"]["actual"] == 5, number == storage.goal_day())
 
@@ -87,17 +88,17 @@ class CampaignTests(unittest.TestCase):
             self.assertEqual(supplies, sorted(supplies, reverse=True))
             self.assertAlmostEqual(storage.pressure_day(), 15)
 
-    def test_forecast_matches_horde_strength(self):
+    def test_forecast_matches_wave_strength(self):
         for difficulty in data.DIFFICULTIES:
             storage.new_game(difficulty)
             storage.state["day"] = storage.goal_day()
             realm.make_omen(random.Random(7))
-            powers = [day.horde_power(day.make_horde(random.Random(seed))) for seed in range(400)]
-            self.assertAlmostEqual(sum(powers) / len(powers), day.expected_horde_power(), delta=3)
+            powers = [day.wave_power(day.make_wave(random.Random(seed))) for seed in range(400)]
+            self.assertAlmostEqual(sum(powers) / len(powers), day.expected_wave_power(), delta=3)
 
     def test_ticket_escape_still_works_before_new_finale(self):
         for difficulty in ("normal", "nightmare"):
-            self.protected_camp(difficulty)
+            self.protected_shelter(difficulty)
             storage.state.update(day=16, tickets=data.TICKET_PIECES)
             for person in storage.state["survivors"]:
                 person["job"] = "guard"
@@ -126,6 +127,32 @@ class CampaignTests(unittest.TestCase):
         storage.save_game()
         storage.load_game()
         self.assertEqual(storage.state["status"], "won")
+
+    def test_old_key_names_are_upgraded_on_load(self):
+        storage.new_game("normal")
+        old = json.loads(json.dumps(storage.state))
+        old["resources"] = {"food": 3, "water": 4, "scrap": 5, "medicine": 6}
+        old["log"]["gathered"] = {"food": 1, "water": 2, "scrap": 3, "medicine": 4}
+        old["log"]["infected"] = old["log"].pop("possessed")
+        old["log"]["biggest_horde"] = old["log"].pop("biggest_wave")
+        old["buildings"] = ["barricade", "garden", "collector", "clinic"]
+        old["wanderer"] = day.make_stranger(random.Random(1))
+        old["wanderer"]["infected"] = old["wanderer"].pop("possessed")
+        del old["stranger"]
+        for person in old["survivors"]:
+            person["infected"] = person.pop("possessed")
+        Path(storage.SAVE_FILE).write_text(json.dumps(old), encoding="utf-8")
+        self.assertTrue(storage.load_game())
+        state = storage.state
+        self.assertEqual(state["resources"], {"food": 3, "water": 4, "incense": 5, "holy_water": 6})
+        self.assertEqual(state["log"]["gathered"]["holy_water"], 4)
+        self.assertIn("possessed", state["log"])
+        self.assertIn("biggest_wave", state["log"])
+        self.assertEqual(state["buildings"], ["sacred_thread", "vegetable_patch", "rain_barrel", "spirit_house"])
+        self.assertIn("possessed", state["stranger"])
+        self.assertNotIn("wanderer", state)
+        self.assertTrue(all("possessed" in person for person in state["survivors"]))
+        day.do_end_day(random.Random(3))
 
     def test_help_displays_current_duration_in_both_languages(self):
         for difficulty, duration in (("easy", 15), ("normal", 20), ("nightmare", 25)):

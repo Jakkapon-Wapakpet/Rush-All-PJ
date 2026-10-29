@@ -6,9 +6,9 @@ Survivors: status, job assignment, auto-assign, recruiting, renaming, and exilin
 """
 
 from language import get_text
-from data import JOBS, SKILLS, LOOKS, LOCATIONS, MAX_CAMP, MAX_HP, MIN_SCAVENGE_HP, RAID_START_DAY, TURN_DAYS, tr
+from data import JOBS, SKILLS, LOOKS, LOCATIONS, MAX_PEOPLE, MAX_HP, MIN_SCAVENGE_HP, RAID_START_DAY, TURN_DAYS, tr
 from ui import heading, choose_from_list, ask_yes_no
-import camp
+import shelter
 import realm
 import storage
 
@@ -40,11 +40,11 @@ def job_text(person: dict) -> str:
     return job_label(person["job"])
 
 
-def infection_text(person: dict) -> str:
+def possession_text(person: dict) -> str:
     """สถานะถูกผีสิง เช่น '😈 ถูกผีสิง! กลายเป็นผีในอีก 1 วัน' หรือ '' ถ้าปกติ"""
-    if not person["infected"]:
+    if not person["possessed"]:
         return ""
-    left = TURN_DAYS - person["infected"] + 1
+    left = TURN_DAYS - person["possessed"] + 1
     return get_text(f"😈 ถูกผีสิง! กลายเป็นผีในอีก {left} วัน", f"😈 POSSESSED! Becomes a ghost in {left} day(s)")
 
 
@@ -57,13 +57,13 @@ def print_survivor(number: int, person: dict) -> None:
     """แสดงข้อมูลผู้รอดชีวิต 1 คน"""
     skills = "  ".join(f"{tr(SKILLS[s])} {stars(level)}" for s, level in person["skills"].items())
     print(f"\n{number}. {person['name']:<10} HP {hp_bar(person['hp'])} {person['hp']:>3}/{MAX_HP}   {job_text(person)}")
-    print(f"   {skills}   {infection_text(person)}")
+    print(f"   {skills}   {possession_text(person)}")
 
 
 def view_survivors() -> None:
     """แสดงผู้รอดชีวิตทุกคน"""
-    heading(f"ผู้รอดชีวิต {len(storage.state['survivors'])}/{MAX_CAMP} คน",
-            f"SURVIVORS {len(storage.state['survivors'])}/{MAX_CAMP}")
+    heading(f"ผู้รอดชีวิต {len(storage.state['survivors'])}/{MAX_PEOPLE} คน",
+            f"SURVIVORS {len(storage.state['survivors'])}/{MAX_PEOPLE}")
     for number, person in enumerate(storage.state["survivors"], start=1):
         print_survivor(number, person)
 
@@ -99,7 +99,7 @@ def check_job(person: dict, job: str) -> str:
         return get_text(f"{person['name']} บาดเจ็บหนัก (HP {person['hp']}) ต้องมี HP อย่างน้อย {MIN_SCAVENGE_HP}",
                         f"{person['name']} is badly hurt (HP {person['hp']}). Needs at least {MIN_SCAVENGE_HP} HP.")
     # กฎ: น้ำมนต์ต้องพอสำหรับคนที่ได้งานประพรมน้ำมนต์ทุกคน (คนละ 1)
-    if job == "heal" and storage.state["resources"]["medicine"] < healers_assigned(person) + 1:
+    if job == "heal" and storage.state["resources"]["holy_water"] < healers_assigned(person) + 1:
         return get_text("น้ำมนต์ไม่พอ (ใช้น้ำมนต์คนละ 1)", "Not enough holy water (each blesser needs 1).")
     return ""
 
@@ -128,12 +128,12 @@ def job_score(person: dict, job: str) -> float:
         return (MAX_HP - person["hp"]) / 25
     skill = person["skills"][JOBS[job]["skill"]]
     if job == "scavenge":
-        need = 2.0 if min(camp.days_left("food"), camp.days_left("water")) <= 2 else 1.0
+        need = 2.0 if min(shelter.days_left("food"), shelter.days_left("water")) <= 2 else 1.0
     elif job == "guard":
         need = 1.3 if state["day"] >= RAID_START_DAY else 0.2
     else:
         # มีคนถูกผีสิง = ต้องประพรมน้ำมนต์ด่วนที่สุด
-        if any(p["infected"] for p in state["survivors"]):
+        if any(p["possessed"] for p in state["survivors"]):
             need = 3.0
         else:
             need = 1.5 if any(p["hp"] < 60 for p in state["survivors"]) else 0.0
@@ -162,27 +162,27 @@ def do_auto_assign() -> list:
     return plan
 
 
-def do_accept_wanderer() -> str:
+def do_accept_stranger() -> str:
     """รับคนที่มาขอเข้าศาลา (ถ้าถูกผีสิงมา จะถูกผีสิงตั้งแต่วันแรก) คืนข้อความผิดพลาด หรือ "" หากสำเร็จ"""
     state = storage.state
-    if state["wanderer"] is None:
+    if state["stranger"] is None:
         return get_text("ไม่มีใครรออยู่ที่ประตู", "No one is at the gate.")
-    # กฎ: ศาลารับคนได้ไม่เกิน MAX_CAMP
-    if len(state["survivors"]) >= MAX_CAMP:
-        return get_text(f"ศาลาเต็มแล้ว (สูงสุด {MAX_CAMP} คน)", f"The sala is full (max {MAX_CAMP}).")
-    wanderer = state["wanderer"]
-    person = storage.new_survivor(wanderer["name"], wanderer["skills"], wanderer["look"])
-    person["hp"] = wanderer["hp"]
-    if wanderer.get("disguised"):
+    # กฎ: ศาลารับคนได้ไม่เกิน MAX_PEOPLE
+    if len(state["survivors"]) >= MAX_PEOPLE:
+        return get_text(f"ศาลาเต็มแล้ว (สูงสุด {MAX_PEOPLE} คน)", f"The sala is full (max {MAX_PEOPLE}).")
+    stranger = state["stranger"]
+    person = storage.new_survivor(stranger["name"], stranger["skills"], stranger["look"])
+    person["hp"] = stranger["hp"]
+    if stranger.get("disguised"):
         person["disguised"] = 2            # ผีปลอมตัว: จะเผยร่างหลังผ่านไป 2 คืน
-    if wanderer.get("ticket"):
+    if stranger.get("ticket"):
         realm.add_ticket([])
-    if wanderer["infected"]:
+    if stranger["possessed"]:
         # ถูกผีสิงมาหลายวันแล้ว: จะกลายเป็นผีคืนนี้ ถ้าไม่ได้น้ำมนต์วันนี้
-        person["infected"] = TURN_DAYS
-        state["log"]["infected"] += 1
+        person["possessed"] = TURN_DAYS
+        state["log"]["possessed"] += 1
     state["survivors"].append(person)
-    state["wanderer"] = None
+    state["stranger"] = None
     state["log"]["joined"] += 1
     storage.save_game()
     return ""
@@ -191,25 +191,25 @@ def do_accept_wanderer() -> str:
 def do_inspect(person: dict) -> str:
     """
     ให้คนในศาลาไปส่องดูเงาคนแปลกหน้า (ใช้งานของคนนั้นทั้งวัน)
-    คืนข้อความผิดพลาด หรือ "" หากตรวจสำเร็จ (ผลตรวจอยู่ใน state["wanderer"]["checked"])
+    คืนข้อความผิดพลาด หรือ "" หากตรวจสำเร็จ (ผลตรวจอยู่ใน state["stranger"]["checked"])
     """
-    wanderer = storage.state["wanderer"]
-    if wanderer is None:
+    stranger = storage.state["stranger"]
+    if stranger is None:
         return get_text("ไม่มีใครรออยู่ที่ประตู", "No one is at the gate.")
-    if wanderer["checked"]:
+    if stranger["checked"]:
         return get_text("ตรวจไปแล้ว", "Already inspected.")
     # กฎ: คนที่ไปตรวจต้องยังไม่มีงานวันนี้ (1 คน 1 งาน)
     if person["job"] is not None:
         return get_text(f"{person['name']} มีงานแล้ววันนี้", f"{person['name']} already has a job today.")
     person["job"] = "inspect"
-    wanderer["checked"] = True
+    stranger["checked"] = True
     storage.save_game()
     return ""
 
 
-def do_reject_wanderer() -> None:
+def do_reject_stranger() -> None:
     """ปฏิเสธคนที่มาขอเข้าศาลา"""
-    storage.state["wanderer"] = None
+    storage.state["stranger"] = None
     storage.save_game()
 
 
@@ -243,7 +243,7 @@ def choose_survivor(people: list = None):
     """แสดงรายชื่อแล้วให้เลือก 1 คน (people = ให้เลือกเฉพาะกลุ่มนี้)"""
     people = storage.state["survivors"] if people is None else people
     for number, person in enumerate(people, start=1):
-        print(f"{number}. {person['name']:<10} HP {person['hp']:>3}   {job_text(person)}   {infection_text(person)}")
+        print(f"{number}. {person['name']:<10} HP {person['hp']:>3}   {job_text(person)}   {possession_text(person)}")
     return choose_from_list(people, "เลือกคน", "Choose a survivor")
 
 
@@ -329,42 +329,42 @@ def exile_survivor() -> None:
 def gate() -> None:
     """ประตูศาลา: ส่องดูเงา แล้วตัดสินใจรับหรือไม่รับคนที่มาขอเข้า"""
     heading("ประตูศาลา", "SALA GATE")
-    wanderer = storage.state["wanderer"]
-    if wanderer is None:
+    stranger = storage.state["stranger"]
+    if stranger is None:
         print(get_text("ไม่มีใครอยู่ที่ประตูวันนี้", "No one is at the gate today."))
         return
 
-    skills = "  ".join(f"{tr(SKILLS[s])} {stars(level)}" for s, level in wanderer["skills"].items())
-    print(get_text(f"🚶 {wanderer['name']} ขอเข้าศาลา (HP {wanderer['hp']})", f"🚶 {wanderer['name']} asks to come in (HP {wanderer['hp']})"))
+    skills = "  ".join(f"{tr(SKILLS[s])} {stars(level)}" for s, level in stranger["skills"].items())
+    print(get_text(f"🚶 {stranger['name']} ขอเข้าศาลา (HP {stranger['hp']})", f"🚶 {stranger['name']} asks to come in (HP {stranger['hp']})"))
     print(f"   {skills}")
-    for line in realm.story_lines(wanderer):
+    for line in realm.story_lines(stranger):
         print(f"   {line}")
-    if wanderer["checked"]:
-        print(get_text("   🔍 ผลตรวจ: " + ("😈 เงาไม่ขยับตามตัว! ถูกผีสิง" if wanderer["infected"] else "✔ เงาปกติ"),
-                       "   🔍 Result: " + ("😈 Their shadow doesn't move! Possessed" if wanderer["infected"] else "✔ Normal shadow")))
+    if stranger["checked"]:
+        print(get_text("   🔍 ผลตรวจ: " + ("😈 เงาไม่ขยับตามตัว! ถูกผีสิง" if stranger["possessed"] else "✔ เงาปกติ"),
+                       "   🔍 Result: " + ("😈 Their shadow doesn't move! Possessed" if stranger["possessed"] else "✔ Normal shadow")))
     else:
         print(get_text("   🔍 ยังไม่ได้ส่องดูเงา (อาจถูกผีสิงมาแล้ว!)", "   🔍 Not inspected yet (could be possessed!)"))
-    print(get_text(f"\nรับเข้ามาแล้วต้องเลี้ยงเพิ่ม: อาหาร +1, น้ำ +1 ต่อวัน   (ศาลา {len(storage.state['survivors'])}/{MAX_CAMP})",
-                   f"\nOne more mouth: +1 food, +1 water per day   (sala {len(storage.state['survivors'])}/{MAX_CAMP})"))
+    print(get_text(f"\nรับเข้ามาแล้วต้องเลี้ยงเพิ่ม: อาหาร +1, น้ำ +1 ต่อวัน   (ศาลา {len(storage.state['survivors'])}/{MAX_PEOPLE})",
+                   f"\nOne more mouth: +1 food, +1 water per day   (sala {len(storage.state['survivors'])}/{MAX_PEOPLE})"))
 
     print(get_text("\n1. รับเข้าศาลา   2. ไม่รับ   3. ส่องดูเงาก่อน (ใช้คนว่าง 1 คนทั้งวัน)   0. ยังไม่ตัดสินใจ",
                    "\n1. Let them in   2. Turn away   3. Check their shadow first (uses one free survivor for the day)   0. Decide later"))
     choice = input(get_text("เลือก: ", "Choose: ")).strip()
     if choice == "1":
-        name, infected = wanderer["name"], wanderer["infected"]
-        error = do_accept_wanderer()
+        name, possessed = stranger["name"], stranger["possessed"]
+        error = do_accept_stranger()
         if error:
             print(error)
-        elif infected:
+        elif possessed:
             print(get_text(f"😱 {name} เข้ามาแล้ว... แต่เงาไม่ขยับตามตัว! ถูกผีสิงมา จะกลายเป็นผีคืนนี้ถ้าไม่ได้น้ำมนต์วันนี้!",
                            f"😱 {name} is in... but their shadow doesn't move! Possessed: holy water today or they become a ghost tonight!"))
         else:
             print(get_text(f"{name} เข้ามาอยู่ในศาลาแล้ว!", f"{name} joined the sala!"))
-        if not error and wanderer.get("ticket"):
+        if not error and stranger.get("ticket"):
             print(get_text(f"🎫 {name} ยื่นชิ้นส่วนตั๋วบ้านผีสิงให้! ({storage.state['tickets']}/3)",
                            f"🎫 {name} hands you a piece of the ticket! ({storage.state['tickets']}/3)"))
     elif choice == "2":
-        do_reject_wanderer()
+        do_reject_stranger()
         print(get_text("คุณปิดประตู... เขาเดินจากไป", "You close the gate... they walk away."))
     elif choice == "3":
         free = [p for p in storage.state["survivors"] if p["job"] is None]
@@ -379,10 +379,10 @@ def gate() -> None:
         if error:
             print(error)
             return
-        result = get_text("😈 เงาไม่ขยับตามตัว! ถูกผีสิง", "😈 Their shadow doesn't move! Possessed") if wanderer["infected"] \
+        result = get_text("😈 เงาไม่ขยับตามตัว! ถูกผีสิง", "😈 Their shadow doesn't move! Possessed") if stranger["possessed"] \
             else get_text("✔ เงาปกติ ปลอดภัย", "✔ Normal shadow. Safe")
-        print(get_text(f"🔍 {person['name']} ส่องดูเงาของ {wanderer['name']}: {result}",
-                       f"🔍 {person['name']} inspects {wanderer['name']}: {result}"))
+        print(get_text(f"🔍 {person['name']} ส่องดูเงาของ {stranger['name']}: {result}",
+                       f"🔍 {person['name']} inspects {stranger['name']}: {result}"))
         print(get_text("(กลับมาที่ประตูเพื่อตัดสินใจรับหรือไม่รับ)", "(Come back to the gate to decide)"))
     elif choice != "0":
         print(get_text("ไม่มีตัวเลือกนี้", "Invalid option."))

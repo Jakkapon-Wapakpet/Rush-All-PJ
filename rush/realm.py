@@ -9,10 +9,10 @@ Advanced systems (Normal and Nightmare): locations, omens, counters, lights, vow
 import random
 
 from language import get_text
-from data import (DIFFICULTIES, LOCATIONS, OMENS, COUNTERS, LIGHTS, VOWS, VOW_DAYS, ZOMBIES, MAX_GRUDGE, MERIT_COST,
-                  FRIEND_GHOST_POWER, TICKET_PIECES, RAID_START_DAY, tr)
+from data import (DIFFICULTIES, LOCATIONS, OMENS, COUNTERS, LIGHTS, VOWS, VOW_DAYS, GHOSTS, MAX_GRUDGE, MERIT_COST,
+                  TICKET_PIECES, RAID_START_DAY, tr)
 from ui import heading, choose_from_list
-import camp
+import shelter
 import storage
 
 
@@ -28,7 +28,7 @@ def advanced() -> bool:
 
 def cost_label(cost: dict) -> str:
     """ราคา เช่น '🕯 ธูปเทียน 3 + 🍚 อาหาร 2'"""
-    return camp.cost_text(cost) if cost else get_text("ฟรี", "free")
+    return shelter.cost_text(cost) if cost else get_text("ฟรี", "free")
 
 
 # ---------- สถานที่ออกไปหาของ ----------
@@ -43,8 +43,8 @@ def gather_at(person: dict, key: str, rng: random.Random, extra: int) -> dict:
     place = LOCATIONS[key]
     skill = person["skills"]["scavenge"]
     found = {res: round(rng.randint(0, skill + extra) * mult * location_factor(key)) for res, mult in place["loot"].items()}
-    if rng.random() < place["medicine"]:
-        found["medicine"] = 1
+    if rng.random() < place["holy_water"]:
+        found["holy_water"] = 1
     return found
 
 
@@ -66,9 +66,9 @@ def after_visit(key: str, rng: random.Random, report: list) -> None:
 def recommend_location() -> str:
     """สถานที่ที่ควรไปตอนนี้ (ไม่แนะนำป่าช้า เพราะเสี่ยงเกินไป ให้ผู้เล่นตัดสินใจเอง)"""
     state = storage.state
-    if state["resources"]["medicine"] == 0 or any(p["infected"] for p in state["survivors"]):
+    if state["resources"]["holy_water"] == 0 or any(p["possessed"] for p in state["survivors"]):
         return "temple"
-    return "market" if camp.days_left("food") <= camp.days_left("water") else "well"
+    return "market" if shelter.days_left("food") <= shelter.days_left("water") else "well"
 
 
 def location_label(key: str) -> str:
@@ -92,9 +92,9 @@ def make_omen(rng: random.Random) -> None:
     if not advanced() or today < RAID_START_DAY:
         state["omen"] = None
         return
-    kinds = [z["level"] for z in ZOMBIES if storage.ghost_day(z["level"]) <= today and z["level"] < 5]
+    kinds = [z["level"] for z in GHOSTS if storage.ghost_day(z["level"]) <= today and z["level"] < 5]
     actual = 5 if today >= storage.goal_day() else rng.choices(kinds, weights=[1 / k for k in kinds])[0]
-    whisper = next((p["name"] for p in state["survivors"] if p["infected"]), None)
+    whisper = next((p["name"] for p in state["survivors"] if p["possessed"]), None)
     others = [k for k in kinds if k != actual]
     if whisper or actual == 5 or not others or rng.random() < omen_accuracy():
         shown = actual
@@ -108,7 +108,7 @@ def omen_text() -> str:
     omen = storage.state["omen"]
     if not omen:
         return ""
-    ghost = ZOMBIES[omen["shown"] - 1]
+    ghost = GHOSTS[omen["shown"] - 1]
     name = f"{ghost['icon']} {tr(ghost['name'])}"
     if omen["whisper"]:
         return get_text(f"😈 {omen['whisper']} กระซิบด้วยเสียงที่ไม่ใช่ของตัวเอง: \"คืนนี้{tr(ghost['name'])}จะมา\" (แม่นแน่นอน)",
@@ -146,10 +146,10 @@ def ghost_power(level: int) -> int:
     if key == "thorns":
         return 1
     if key == "offering":
-        return ZOMBIES[level - 1]["power"] // 2
+        return GHOSTS[level - 1]["power"] // 2
     if key == "fire":
         return 5
-    return ZOMBIES[level - 1]["power"]
+    return GHOSTS[level - 1]["power"]
 
 
 # ---------- ไฟกลางคืน ----------
@@ -196,7 +196,7 @@ def do_vow(key: str) -> str:
     if key == "calm":
         state["calm"] = True
     elif key == "water":
-        state["resources"]["medicine"] += 3
+        state["resources"]["holy_water"] += 3
     else:
         state["resources"]["food"] += 4
         state["resources"]["water"] += 4
@@ -229,11 +229,11 @@ def check_vow(rng: random.Random, report: list) -> None:
     state["vow"] = None
     add_grudge(3)
     report.append(get_text("⚡ ไม่ได้แก้บน! เจ้าที่โกรธ ผีแค้นหนักขึ้น", "⚡ You broke your vow! The spirit is furious."))
-    healthy = [p for p in state["survivors"] if not p["infected"]]
+    healthy = [p for p in state["survivors"] if not p["possessed"]]
     if healthy:
         victim = rng.choice(healthy)
-        victim["infected"] = 1
-        state["log"]["infected"] += 1
+        victim["possessed"] = 1
+        state["log"]["possessed"] += 1
         report.append(get_text(f"   😈 {victim['name']} ถูกผีสิงเพราะคำสาป!", f"   😈 {victim['name']} is possessed by the curse!"))
 
 
@@ -293,7 +293,7 @@ def escape_ready() -> bool:
 
 # ---------- คนแปลกหน้าที่มีเรื่องราว ----------
 
-def wanderer_story(rng: random.Random) -> dict:
+def stranger_story(rng: random.Random) -> dict:
     """
     เรื่องของคนแปลกหน้า: disguised = ผีปลอมตัว (ส่องดูเงาแล้วดูปกติ), ticket = พกชิ้นส่วนตั๋วมา
     cold = ตัวเย็นเฉียบ (ผีปลอมตัวเป็นทุกตน แต่คนปกติก็เป็นได้ 20%)
@@ -305,12 +305,12 @@ def wanderer_story(rng: random.Random) -> dict:
     return {"disguised": disguised, "ticket": ticket, "cold": disguised or rng.random() < 0.2}
 
 
-def story_lines(wanderer: dict) -> list:
+def story_lines(stranger: dict) -> list:
     """เบาะแสที่สังเกตเห็นจากคนแปลกหน้า"""
     lines = []
-    if wanderer.get("cold"):
+    if stranger.get("cold"):
         lines.append(get_text("🥶 มือเย็นเฉียบผิดปกติ...", "🥶 Their hands are unnaturally cold..."))
-    if wanderer.get("ticket"):
+    if stranger.get("ticket"):
         lines.append(get_text("🎫 กำเศษกระดาษแปลกๆ ไว้แน่นในมือ", "🎫 They clutch a strange scrap of paper"))
     return lines
 
@@ -328,7 +328,7 @@ def tonight_menu() -> None:
     print(get_text("\nของแก้ผี (ใช้ได้คืนเดียว):", "\nCounters (tonight only):"))
     for number, key in enumerate(keys, start=1):
         info = COUNTERS[key]
-        ghost = ZOMBIES[info["ghost"] - 1]
+        ghost = GHOSTS[info["ghost"] - 1]
         done = get_text("  ✔ เตรียมแล้ว", "  ✔ ready") if key in state["prepared"] else ""
         print(f"{number}. {info['icon']} {tr(info['name']):<14} vs {ghost['icon']} {tr(ghost['name']):<14} "
               f"{cost_label(info['cost']):<22} {tr(info['about'])}{done}")

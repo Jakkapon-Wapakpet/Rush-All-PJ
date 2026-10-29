@@ -3,7 +3,7 @@
 Day Module - GHOST REALM (หลุดมิติผี)
 จบวัน: ผลของงาน → สิ่งก่อสร้างผลิตของ → กินอาหาร/ดื่มน้ำ → ผีสิงลุกลาม → เหตุการณ์กลางคืน → ผู้เสียชีวิต → ชนะ/แพ้
 และบันทึกศาลา (สถิติ)
-End of day: jobs, building output, eating, infection, night events, deaths, win/lose; plus the shelter log.
+End of day: jobs, building output, eating, possession, night events, deaths, win/lose; plus the shelter log.
 ระบบเสริมของระดับปกติขึ้นไป (สถานที่ ลาง ของแก้ผี ไฟ บนบาน ผีเพื่อน ตั๋ว) อยู่ใน realm.py
 """
 
@@ -11,11 +11,11 @@ import random
 import time
 
 from language import get_text
-from data import (RESOURCES, SKILLS, BUILDINGS, ZOMBIES, LOOKS, LOCATIONS, COUNTERS, FRIEND_GHOST_POWER,
-                  TICKET_PIECES, MAX_CAMP, MAX_HP, STARVE_DAMAGE,
-                  REST_HEAL, RAID_START_DAY, WANDERER_CHANCE, WANDERER_INFECTED, WANDERER_NAMES, TURN_DAYS, tr)
+from data import (RESOURCES, SKILLS, BUILDINGS, GHOSTS, LOOKS, LOCATIONS, COUNTERS, FRIEND_GHOST_POWER,
+                  TICKET_PIECES, MAX_PEOPLE, MAX_HP, STARVE_DAMAGE,
+                  REST_HEAL, RAID_START_DAY, STRANGER_CHANCE, STRANGER_POSSESSED, STRANGER_NAMES, TURN_DAYS, tr)
 from ui import heading, ask_yes_no
-import camp
+import shelter
 import realm
 import storage
 import survivors
@@ -24,8 +24,8 @@ import survivors
 SCARCITY_PER_DAY = 0.03  # Loss per base-timeline day; stretched over the selected campaign.
 GATHER_RANGE = 1         # สุ่มของที่หาได้ 0..(ทักษะ + ค่านี้) ต่ออย่าง
 RAID_BITES = 3           # ผีทำร้ายได้สูงสุดกี่คน
-SCRATCH_INFECT = 0.3     # โอกาสถูกผีสิงเมื่อบาดเจ็บตอนออกไปหาของ
-BARRICADE_DEFENSE = 6
+INJURY_POSSESS = 0.3     # โอกาสถูกผีสิงเมื่อบาดเจ็บตอนออกไปหาของ
+THREAD_DEFENSE = 6
 GUARD_POWER = 5          # พลังป้องกันต่อทักษะปราบผี 1 ระดับของคนเฝ้ายาม
 LINE_DELAY = 0.25        # หน่วงเวลาระหว่างบรรทัดตอนเล่าเหตุการณ์ (วินาที)
 
@@ -39,7 +39,7 @@ def gather(person: dict, rng: random.Random) -> dict:
     """ของที่คนนี้หามาได้ = สุ่มตามทักษะหาของ x ความขาดแคลน"""
     skill = person["skills"]["scavenge"]
     factor = scarcity()
-    return {key: round(rng.randint(0, skill + GATHER_RANGE) * factor) for key in ("food", "water", "scrap")}
+    return {key: round(rng.randint(0, skill + GATHER_RANGE) * factor) for key in ("food", "water", "incense")}
 
 
 def injury_chance(person: dict) -> float:
@@ -53,10 +53,10 @@ def defense(runners: bool = False) -> int:
     ถ้ามีกระสือในฝูง (และไม่ได้เตรียมหนามไผ่) สายสิญจน์ป้องกันได้แค่ครึ่งเดียว
     """
     guards = sum(p["skills"]["guard"] * GUARD_POWER for p in storage.state["survivors"] if p["job"] == "guard")
-    barricade = BARRICADE_DEFENSE if "barricade" in storage.state["buildings"] else 0
+    thread = THREAD_DEFENSE if "sacred_thread" in storage.state["buildings"] else 0
     if runners:
-        barricade //= 2
-    return realm.light_defense(guards + barricade)
+        thread //= 2
+    return realm.light_defense(guards + thread)
 
 
 def hurt(person: dict, amount: int) -> None:
@@ -64,27 +64,27 @@ def hurt(person: dict, amount: int) -> None:
     person["hp"] = max(0, person["hp"] - amount)
 
 
-def infect(person: dict, chance: float, rng: random.Random, report: list) -> None:
+def possess(person: dict, chance: float, rng: random.Random, report: list) -> None:
     """สุ่มถูกผีสิง (คนที่ถูกสิงอยู่แล้วไม่นับซ้ำ)"""
-    if person["infected"] or rng.random() >= chance:
+    if person["possessed"] or rng.random() >= chance:
         return
-    person["infected"] = 1
-    storage.state["log"]["infected"] += 1
+    person["possessed"] = 1
+    storage.state["log"]["possessed"] += 1
     report.append(get_text(f"   😈 {person['name']} ถูกผีสิง! ต้องได้น้ำมนต์ภายใน {TURN_DAYS} วัน",
                            f"   😈 {person['name']} is possessed! Needs holy water within {TURN_DAYS} days"))
 
 
-def make_wanderer(rng: random.Random) -> dict:
+def make_stranger(rng: random.Random) -> dict:
     """สุ่มคนที่มาขอเข้าศาลา (ชื่อไม่ซ้ำ ทักษะรวม 6-8 แต้ม อาจถูกผีสิงมาแล้ว)"""
     taken = {p["name"] for p in storage.state["survivors"]}
-    names = [n for n in WANDERER_NAMES if n not in taken] or ["???"]
+    names = [n for n in STRANGER_NAMES if n not in taken] or ["???"]
     skills = {s: 1 for s in SKILLS}
     for _ in range(rng.randint(3, 5)):
         skill = rng.choice([s for s in SKILLS if skills[s] < 5])
         skills[skill] += 1
-    story = realm.wanderer_story(rng)
+    story = realm.stranger_story(rng)
     return {"name": rng.choice(names), "skills": skills, "hp": rng.randint(50, 90), "look": rng.choice(LOOKS),
-            "infected": not story["disguised"] and rng.random() < WANDERER_INFECTED, "checked": False, **story}
+            "possessed": not story["disguised"] and rng.random() < STRANGER_POSSESSED, "checked": False, **story}
 
 
 def resolve_jobs(rng: random.Random, report: list) -> None:
@@ -109,8 +109,8 @@ def resolve_jobs(rng: random.Random, report: list) -> None:
                 hurt(person, damage)
                 report.append(get_text(f"   🩸 {person['name']} ถูกผีจู่โจมระหว่างทาง (HP -{damage})",
                                        f"   🩸 {person['name']} was attacked by a ghost on the way (HP -{damage})"))
-                infect(person, LOCATIONS[place]["infect"] if place else SCRATCH_INFECT, rng, report)
-        elif job == "heal" and state["resources"]["medicine"] > 0:
+                possess(person, LOCATIONS[place]["possess"] if place else INJURY_POSSESS, rng, report)
+        elif job == "heal" and state["resources"]["holy_water"] > 0:
             heal(person, report)
         elif job == "rest":
             person["hp"] = min(MAX_HP, person["hp"] + REST_HEAL)
@@ -126,11 +126,11 @@ def resolve_jobs(rng: random.Random, report: list) -> None:
 def heal(medic: dict, report: list) -> None:
     """ใช้น้ำมนต์ 1: ไล่ผีออกจากคนที่ใกล้กลายเป็นผีที่สุดก่อน ถ้าไม่มีใครถูกผีสิง รักษาคนที่ HP ต่ำสุด"""
     state = storage.state
-    state["resources"]["medicine"] -= 1
-    infected = [p for p in state["survivors"] if p["infected"]]
-    if infected:
-        patient = max(infected, key=lambda p: p["infected"])
-        patient["infected"] = 0
+    state["resources"]["holy_water"] -= 1
+    possessed = [p for p in state["survivors"] if p["possessed"]]
+    if possessed:
+        patient = max(possessed, key=lambda p: p["possessed"])
+        patient["possessed"] = 0
         state["log"]["cured"] += 1
         report.append(get_text(f"✚ {medic['name']} ประพรมน้ำมนต์ไล่ผีออกจากร่าง {patient['name']} — หายแล้ว! (ใช้น้ำมนต์ 1)",
                                f"✚ {medic['name']} drove the ghost out of {patient['name']} — freed! (1 holy water)"))
@@ -143,13 +143,13 @@ def heal(medic: dict, report: list) -> None:
 
 
 def produce(report: list) -> None:
-    """สิ่งก่อสร้างผลิตของ (จำนวนดูจาก camp.DAILY_OUTPUT, ศาลพระภูมิให้น้ำมนต์ทุก 2 วัน)"""
+    """สิ่งก่อสร้างผลิตของ (จำนวนดูจาก shelter.DAILY_OUTPUT, ศาลพระภูมิให้น้ำมนต์ทุก 2 วัน)"""
     state = storage.state
     for building in state["buildings"]:
-        if building not in camp.DAILY_OUTPUT:
+        if building not in shelter.DAILY_OUTPUT:
             continue
-        resource, amount = camp.DAILY_OUTPUT[building]
-        if building == "clinic":
+        resource, amount = shelter.DAILY_OUTPUT[building]
+        if building == "spirit_house":
             if state["day"] % 2:
                 continue
             amount = 1
@@ -177,17 +177,17 @@ def eat_and_drink(rng: random.Random, report: list) -> None:
                                    f"😵 {person['name']} is {word_en}! (HP -{STARVE_DAMAGE})"))
 
 
-def spread_infection(rng: random.Random, report: list) -> None:
+def spread_possession(rng: random.Random, report: list) -> None:
     """
     ผีสิงลุกลาม: คนที่ถูกผีสิงนับวันเพิ่ม ถ้าเกิน TURN_DAYS จะกลายเป็นผี
     แล้วทำร้ายคนในศาลา 1 คน (คนที่ถูกทำร้ายอาจถูกผีสิงต่อ)
     """
     state = storage.state
     for person in list(state["survivors"]):
-        if not person["infected"]:
+        if not person["possessed"]:
             continue
-        person["infected"] += 1
-        if person["infected"] <= TURN_DAYS:
+        person["possessed"] += 1
+        if person["possessed"] <= TURN_DAYS:
             report.append(get_text(f"😈 {person['name']} ตัวเย็นเฉียบ พูดจาแปลกๆ... (กลายเป็นผีพรุ่งนี้ถ้าไม่ได้น้ำมนต์)",
                                    f"😈 {person['name']} is ice cold, whispering strangely... (becomes a ghost tomorrow without holy water)"))
             continue
@@ -204,7 +204,7 @@ def spread_infection(rng: random.Random, report: list) -> None:
             hurt(victim, damage)
             report.append(get_text(f"   🩸 {victim['name']} ถูกทำร้ายก่อนจะไล่ผีออกไปได้ (HP -{damage})",
                                    f"   🩸 {victim['name']} was attacked before the ghost was driven off (HP -{damage})"))
-            infect(victim, 0.5, rng, report)
+            possess(victim, 0.5, rng, report)
 
 
 def reveal_disguised(rng: random.Random, report: list) -> None:
@@ -227,32 +227,32 @@ def reveal_disguised(rng: random.Random, report: list) -> None:
                                    f"   🩸 {victim['name']} was attacked (HP -{damage})"))
 
 
-def make_horde(rng: random.Random) -> list:
+def make_wave(rng: random.Random) -> list:
     """
     สุ่มฝูงผีของคืนนี้ คืนค่า list ของเลเวลผีแต่ละตัว
-    จำนวน = 3 + (วันตามสัดส่วนแคมเปญ x horde_growth) + สุ่ม 0-2 ตัว, เลเวลสูงโผล่น้อยกว่า
+    จำนวน = 3 + (วันตามสัดส่วนแคมเปญ x wave_growth) + สุ่ม 0-2 ตัว, เลเวลสูงโผล่น้อยกว่า
     ระดับปกติขึ้นไป: ผีตัวจริงตามลางมาเพิ่ม 2 ตัว และความแค้นทุก 2 แต้มเพิ่มผีอีก 1 ตัว
     คืนสุดท้ายมีเสือสมิงมาด้วยเสมอ
     """
     state = storage.state
     day = state["day"]
-    kinds = [z for z in ZOMBIES if storage.ghost_day(z["level"]) <= day and z["level"] < 5]
+    kinds = [z for z in GHOSTS if storage.ghost_day(z["level"]) <= day and z["level"] < 5]
     weights = [1 / z["level"] for z in kinds]
-    count = 3 + round(storage.pressure_day() * realm.setting("horde_growth")) + rng.randint(0, 2) + state["grudge"] // 2
-    horde = [z["level"] for z in rng.choices(kinds, weights=weights, k=count)]
+    count = 3 + round(storage.pressure_day() * realm.setting("wave_growth")) + rng.randint(0, 2) + state["grudge"] // 2
+    wave = [z["level"] for z in rng.choices(kinds, weights=weights, k=count)]
     if state["omen"] and state["omen"]["actual"] < 5:
-        horde += [state["omen"]["actual"]] * 2
+        wave += [state["omen"]["actual"]] * 2
     if day >= storage.goal_day():
-        horde.append(5)
-    return sorted(horde)
+        wave.append(5)
+    return sorted(wave)
 
 
-def horde_power(horde: list) -> int:
+def wave_power(wave: list) -> int:
     """พลังรวมของฝูง = ผลรวมพลังของผีทุกตัว (คิดของแก้ผีที่เตรียมไว้แล้ว)"""
-    return sum(realm.ghost_power(level) for level in horde)
+    return sum(realm.ghost_power(level) for level in wave)
 
 
-def expected_horde_power() -> int:
+def expected_wave_power() -> int:
     """
     พลังฝูงผีโดยเฉลี่ยถ้าคืนนี้ถูกบุก (GUI ใช้เทียบกับพลังป้องกัน) คืนค่า 0 ถ้ายังไม่ถึงวันที่ผีเริ่มบุก
     = พลังเฉลี่ยต่อตัวตามน้ำหนักที่ใช้สุ่ม x จำนวนตัวเฉลี่ย (+ เสือสมิงในคืนสุดท้าย)
@@ -260,19 +260,19 @@ def expected_horde_power() -> int:
     today = storage.state["day"]
     if today < RAID_START_DAY:
         return 0
-    kinds = [z for z in ZOMBIES if storage.ghost_day(z["level"]) <= today and z["level"] < 5]
+    kinds = [z for z in GHOSTS if storage.ghost_day(z["level"]) <= today and z["level"] < 5]
     weights = [1 / z["level"] for z in kinds]
     average = sum(w * z["power"] for w, z in zip(weights, kinds)) / sum(weights)
-    count = 3 + round(storage.pressure_day() * realm.setting("horde_growth")) + 1 + storage.state["grudge"] // 2
+    count = 3 + round(storage.pressure_day() * realm.setting("wave_growth")) + 1 + storage.state["grudge"] // 2
     boss = realm.ghost_power(5) if today >= storage.goal_day() else 0
     omen = storage.state["omen"]
     featured = realm.ghost_power(omen["actual"]) * 2 if omen and omen["actual"] < 5 else 0
     return round(average * count) + boss + featured
 
 
-def horde_text(horde: list) -> str:
+def wave_text(wave: list) -> str:
     """องค์ประกอบของฝูง เช่น '👻x5 🔥x2 🦴x1'"""
-    return " ".join(f"{ZOMBIES[level - 1]['icon']}x{horde.count(level)}" for level in sorted(set(horde)))
+    return " ".join(f"{GHOSTS[level - 1]['icon']}x{wave.count(level)}" for level in sorted(set(wave)))
 
 
 def night_event(rng: random.Random, report: list) -> str:
@@ -288,37 +288,37 @@ def night_event(rng: random.Random, report: list) -> str:
     if calm:
         report.append(get_text("🌙 เจ้าที่คุ้มครอง... คืนนี้ไม่มีผีกล้าเข้าใกล้", "🌙 The spirit keeps watch... no ghost dares come near."))
     if final_night or (not calm and state["day"] >= RAID_START_DAY and roll < realm.raid_chance()):
-        horde = make_horde(rng)
+        wave = make_wave(rng)
         friends = realm.friends_joining(rng)
-        power = horde_power(horde) + FRIEND_GHOST_POWER * len(friends)
-        runners = 2 in horde and not realm.counter_for(2)
+        power = wave_power(wave) + FRIEND_GHOST_POWER * len(friends)
+        runners = 2 in wave and not realm.counter_for(2)
         guard = defense(runners=runners)
         state["log"]["raids"] += 1
-        state["log"]["biggest_horde"] = max(state["log"]["biggest_horde"], power)
+        state["log"]["biggest_wave"] = max(state["log"]["biggest_wave"], power)
         if final_night:
-            report.append(get_text("🐯 คืนสุดท้าย... เสือสมิงนำฝูงผีมาเอง!", "🐯 The final night... The Saming Tiger leads the horde!"))
-        report.append(get_text(f"👻 ฝูงผีบุก! {horde_text(horde)} = พลัง {power} vs พลังป้องกัน {guard}",
-                               f"👻 Ghost raid! {horde_text(horde)} = power {power} vs defense {guard}"))
+            report.append(get_text("🐯 คืนสุดท้าย... เสือสมิงนำฝูงผีมาเอง!", "🐯 The final night... The Saming Tiger leads the wave!"))
+        report.append(get_text(f"👻 ฝูงผีบุก! {wave_text(wave)} = พลัง {power} vs พลังป้องกัน {guard}",
+                               f"👻 Ghost raid! {wave_text(wave)} = power {power} vs defense {guard}"))
         for name in friends:
             report.append(get_text(f"   👤 ผีของ{name}มากับฝูงด้วย... \"ให้ฉันเข้าไปหน่อย\" (พลัง +{FRIEND_GHOST_POWER})",
                                    f"   👤 {name}'s ghost walks with them... \"let me in\" (power +{FRIEND_GHOST_POWER})"))
-        for level in sorted(set(horde)):
+        for level in sorted(set(wave)):
             key = realm.counter_for(level)
             if key:
                 report.append(get_text(f"   {COUNTERS[key]['icon']} {tr(COUNTERS[key]['name'])}ได้ผล! {tr(COUNTERS[key]['about'])}",
                                        f"   {COUNTERS[key]['icon']} {tr(COUNTERS[key]['name'])} works! {tr(COUNTERS[key]['about'])}"))
-        if runners and "barricade" in state["buildings"]:
+        if runners and "sacred_thread" in state["buildings"]:
             report.append(get_text("   🔥 กระสือลอยข้ามสายสิญจน์ได้ (สายสิญจน์กันได้ครึ่งเดียว)",
                                    "   🔥 Krasue float over the sacred thread (it only stops half as well)"))
-        smashed = 0 if realm.counter_for(3) else min(state["resources"]["scrap"], horde.count(3) * 2)
+        smashed = 0 if realm.counter_for(3) else min(state["resources"]["incense"], wave.count(3) * 2)
         if smashed:
-            state["resources"]["scrap"] -= smashed
+            state["resources"]["incense"] -= smashed
             report.append(get_text(f"   🦴 เปรตกินของเซ่นไหว้ 🕯-{smashed}", f"   🦴 Pretas devour your offerings 🕯-{smashed}"))
         if guard >= power:
             state["log"]["repelled"] += 1
             report.append(get_text("   ✔ ต้านไว้ได้! ฝูงผีถอยกลับไป", "   ✔ You held the line! The ghosts retreat."))
         else:
-            bite = realm.setting("bite_infect") * (2 if 4 in horde and not realm.counter_for(4) else 1)
+            possess_chance = realm.setting("hit_possess") * (2 if 4 in wave and not realm.counter_for(4) else 1)
             lost = min(state["resources"]["food"], (power - guard) // 2 + 1)
             state["resources"]["food"] -= lost
             report.append(get_text(f"   ✖ ผีบุกเข้ามาในศาลา! อาหารเสียหาย 🍚-{lost}",
@@ -327,14 +327,14 @@ def night_event(rng: random.Random, report: list) -> str:
                 damage = rng.randint(15, 30)
                 hurt(person, damage)
                 report.append(get_text(f"   🩸 {person['name']} ถูกผีทำร้าย (HP -{damage})", f"   🩸 {person['name']} was attacked (HP -{damage})"))
-                infect(person, bite, rng, report)
+                possess(person, possess_chance, rng, report)
         return "raid"
     if roll < 0.60:
-        scrap = min(2, state["resources"]["scrap"])
-        state["resources"]["scrap"] -= scrap
+        incense = min(2, state["resources"]["incense"])
+        state["resources"]["incense"] -= incense
         storage.gain("water", 3)
-        report.append(get_text(f"⛈ ฝนตกหนัก! หลังคาศาลารั่ว ธูปเทียนเปียก 🕯-{scrap} แต่รองน้ำฝนได้ 💧+3",
-                               f"⛈ Heavy rain! The roof leaks, soaking 🕯-{scrap}, but you collect 💧+3"))
+        report.append(get_text(f"⛈ ฝนตกหนัก! หลังคาศาลารั่ว ธูปเทียนเปียก 🕯-{incense} แต่รองน้ำฝนได้ 💧+3",
+                               f"⛈ Heavy rain! The roof leaks, soaking 🕯-{incense}, but you collect 💧+3"))
         return "rain"
     if roll < 0.70:
         person = rng.choice(people)
@@ -342,7 +342,7 @@ def night_event(rng: random.Random, report: list) -> str:
         report.append(get_text(f"😱 {person['name']} ฝันร้ายทั้งคืน (HP -20)", f"😱 {person['name']} had nightmares all night (HP -20)"))
         return "sick"
     if roll < 0.82:
-        storage.gain("medicine", 1)
+        storage.gain("holy_water", 1)
         storage.gain("food", 2)
         report.append(get_text("🎁 ญาติที่โลกมนุษย์ทำบุญส่งของมาให้! 🏺+1 🍚+2", "🎁 Family back home made merit for you! 🏺+1 🍚+2"))
         return "drop"
@@ -352,7 +352,7 @@ def night_event(rng: random.Random, report: list) -> str:
 
 def rescued() -> list:
     """คนที่ได้ผ่านประตูมิติกลับบ้าน (กฎ: คนที่ถูกผีสิงผ่านไม่ได้)"""
-    return [p for p in storage.state["survivors"] if not p["infected"]]
+    return [p for p in storage.state["survivors"] if not p["possessed"]]
 
 
 def ending_grade(alive: int, early: bool = False) -> tuple:
@@ -382,7 +382,7 @@ def do_end_day(rng: random.Random = None) -> dict:
     resolve_jobs(rng, report)
     produce(report)
     eat_and_drink(rng, report)
-    spread_infection(rng, report)
+    spread_possession(rng, report)
     reveal_disguised(rng, report)
     realm.check_vow(rng, report)
     event = night_event(rng, report)
@@ -411,9 +411,9 @@ def do_end_day(rng: random.Random = None) -> dict:
         for person in state["survivors"]:
             person["job"] = None
         state["prepared"], state["light"], state["calm"] = [], "normal", False
-        state["wanderer"] = None
-        if len(state["survivors"]) < MAX_CAMP and rng.random() < WANDERER_CHANCE:
-            state["wanderer"] = make_wanderer(rng)
+        state["stranger"] = None
+        if len(state["survivors"]) < MAX_PEOPLE and rng.random() < STRANGER_CHANCE:
+            state["stranger"] = make_stranger(rng)
         realm.make_omen(rng)
 
     # เกมจบ: จดผลลงประวัติ
@@ -462,16 +462,16 @@ def end_day() -> None:
         print(get_text(f"\n🌅 เช้าวันที่ {state['day']}/{storage.goal_day()}", f"\n🌅 Morning of day {state['day']}/{storage.goal_day()}"))
         if realm.omen_text():
             print(realm.omen_text())
-        infected = [p["name"] for p in state["survivors"] if p["infected"]]
-        if infected:
-            print(get_text(f"😈 ถูกผีสิงอยู่: {', '.join(infected)} — มอบงานประพรมน้ำมนต์ด่วน!",
-                           f"😈 Possessed: {', '.join(infected)} — assign someone to bless them now!"))
-        if state["wanderer"]:
-            print(get_text(f"🚶 มีคนมาขอเข้าศาลาที่ประตู: {state['wanderer']['name']}",
-                           f"🚶 Someone is at the gate: {state['wanderer']['name']}"))
+        possessed = [p["name"] for p in state["survivors"] if p["possessed"]]
+        if possessed:
+            print(get_text(f"😈 ถูกผีสิงอยู่: {', '.join(possessed)} — มอบงานประพรมน้ำมนต์ด่วน!",
+                           f"😈 Possessed: {', '.join(possessed)} — assign someone to bless them now!"))
+        if state["stranger"]:
+            print(get_text(f"🚶 มีคนมาขอเข้าศาลาที่ประตู: {state['stranger']['name']}",
+                           f"🚶 Someone is at the gate: {state['stranger']['name']}"))
 
 
-def camp_stats() -> dict:
+def shelter_stats() -> dict:
     """
     คำนวณสถิติศาลา (ใช้ร่วมกันทั้ง Terminal และ GUI):
     ของที่หามาได้ทั้งหมด อัตราป้องกันการบุก อัตราไล่ผีออกจากร่าง คนที่เก่งแต่ละด้าน และอาหาร/น้ำต่ำสุดที่เคยเหลือ
@@ -486,18 +486,18 @@ def camp_stats() -> dict:
     return {
         "gathered": sum(log["gathered"].values()),
         "defense_rate": log["repelled"] / log["raids"] * 100 if log["raids"] else 0,
-        "cure_rate": log["cured"] / log["infected"] * 100 if log["infected"] else 0,
+        "cure_rate": log["cured"] / log["possessed"] * 100 if log["possessed"] else 0,
         "best": best,
         "lowest_food": min((d["food"] for d in days), default=storage.state["resources"]["food"]),
         "lowest_water": min((d["water"] for d in days), default=storage.state["resources"]["water"]),
     }
 
 
-def camp_log() -> None:
+def shelter_log() -> None:
     """บันทึกศาลา: สถิติและกราฟอาหารรายวัน"""
     state = storage.state
     log = state["log"]
-    stats = camp_stats()
+    stats = shelter_stats()
     heading("บันทึกศาลา", "SALA LOG")
     survived = min(state["day"] - (0 if state["status"] != "playing" else 1), storage.goal_day())
     print(get_text(f"รอดมาแล้ว {survived}/{storage.goal_day()} วัน   ", f"Survived {survived}/{storage.goal_day()} days   ")
@@ -506,9 +506,9 @@ def camp_log() -> None:
                    f"Survivors {len(state['survivors'])}   joined {log['joined']}   died {log['deaths']}"))
     print(get_text(f"ผีบุก {log['raids']} ครั้ง   ต้านไว้ได้ {log['repelled']} ({stats['defense_rate']:.0f}%)",
                    f"Raids {log['raids']}   repelled {log['repelled']} ({stats['defense_rate']:.0f}%)"))
-    print(get_text(f"ถูกผีสิง {log['infected']} ครั้ง   ไล่ผีออกได้ {log['cured']} ({stats['cure_rate']:.0f}%)   กลายเป็นผี {log['turned']}",
-                   f"Possessions {log['infected']}   freed {log['cured']} ({stats['cure_rate']:.0f}%)   became ghosts {log['turned']}"))
-    print(get_text(f"ฝูงใหญ่ที่สุดที่เจอ: พลัง {log['biggest_horde']}", f"Biggest horde faced: power {log['biggest_horde']}"))
+    print(get_text(f"ถูกผีสิง {log['possessed']} ครั้ง   ไล่ผีออกได้ {log['cured']} ({stats['cure_rate']:.0f}%)   กลายเป็นผี {log['turned']}",
+                   f"Possessions {log['possessed']}   freed {log['cured']} ({stats['cure_rate']:.0f}%)   became ghosts {log['turned']}"))
+    print(get_text(f"ฝูงใหญ่ที่สุดที่เจอ: พลัง {log['biggest_wave']}", f"Biggest horde faced: power {log['biggest_wave']}"))
     gathered = "  ".join(f"{RESOURCES[k]['icon']}{v}" for k, v in log["gathered"].items())
     print(get_text(f"หาของได้ทั้งหมด {stats['gathered']} ชิ้น   ({gathered})", f"Total gathered {stats['gathered']}   ({gathered})"))
     print(get_text(f"อาหารเหลือน้อยสุด {stats['lowest_food']}   น้ำเหลือน้อยสุด {stats['lowest_water']}",
@@ -523,5 +523,5 @@ def camp_log() -> None:
         print(get_text("\nอาหารคงเหลือตอนจบแต่ละวัน:", "\nFood left at the end of each day:"))
         for entry in log["days"][-8:]:
             print(f"  {get_text('วัน', 'Day')} {entry['day']:>2}  {'█' * min(entry['food'], 30):<30} {entry['food']}")
-    print(get_text(f"\nคาดการณ์ตอนนี้: อาหาร{camp.days_text('food')}  น้ำ{camp.days_text('water')}",
-                   f"\nForecast now: food {camp.days_text('food')}, water {camp.days_text('water')}"))
+    print(get_text(f"\nคาดการณ์ตอนนี้: อาหาร{shelter.days_text('food')}  น้ำ{shelter.days_text('water')}",
+                   f"\nForecast now: food {shelter.days_text('food')}, water {shelter.days_text('water')}"))

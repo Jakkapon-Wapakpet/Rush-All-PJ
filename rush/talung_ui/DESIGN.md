@@ -79,7 +79,7 @@ components:
 
 มิติผี is a native Python/Tkinter management game set around a lantern-lit Thai pavilion. Colored Nang Talung figures, indigo forest scenery, warm parchment lettering and amber actions establish the implemented world. People wear distinct green, coral, blue and ochre clothing; items and controls also retain color.
 
-This records `widgets.py`, `main.py`, `screens.py` and `art.py`, with visual evidence from `../assets/talung/gui-desktop.png`, `gui-menu.png` and `gui-small.png`. `TalungApp` inherits rules, saves and remaining screens from `../gui.py`. The normal `python gui.py` entry opens this interface; `python gui.py --legacy` selects the original GUI. This document governs presentation, not game balance. The direction comes from the approved conversation and existing native implementation; there is no PRODUCT.md, recorded design-gate artifact or composition-reproduction measurement. Flat native button frames and the system-font gameplay header are actual adaptations; pixel-identical reproduction of the approved mockup is not established.
+This records `main.py`, `screens.py`, `art.py` and the shared widgets in `../gui_theme.py`. `TalungApp` inherits rules, saves and remaining screens from `../gui.py`. `python gui.py` opens this interface. This document governs presentation, not game balance. The direction comes from the approved conversation and existing native implementation; there is no PRODUCT.md, recorded design-gate artifact or composition-reproduction measurement. Flat native button frames and the system-font gameplay header are actual adaptations; pixel-identical reproduction of the approved mockup is not established.
 
 Key characteristics:
 
@@ -115,7 +115,7 @@ The midnight blue and indigo artwork sits inside dark blue-green native surfaces
 
 ## Typography
 
-Leelawadee UI serves Thai and English. Tk font sizes are points; geometric dimensions are pixels. Shared body copy is regular (11pt), small copy regular (10pt), and the `ui.font` helper supplies bold labels and headings. No custom web-font loading is involved.
+Leelawadee UI serves Thai and English. Tk font sizes are points; geometric dimensions are pixels. Shared body copy is regular (11pt), small copy regular (10pt), and the `theme.font` helper supplies bold labels and headings. No custom web-font loading is involved.
 
 The header title is bold (20pt in Thai, 15pt in English), resource values bold (17pt), survivor names bold (16pt, or 12pt in compact cards), visitor names bold (19pt), panel headings generally bold (17–18pt), and dialog headings bold (20pt). Job controls are bold (11pt, or 10pt in compact cards); tabs are bold (10pt). The main end-day action is bold (13pt). The title menu uses the authored logo image rather than reconstructing its lettering as a font.
 
@@ -139,7 +139,7 @@ Native frames remain flat, with tonal layers and one-pixel outlines instead of d
 
 ## Shapes
 
-Panels, cards, meters and buttons use square corners. Thin warm outlines frame cards and the right panel; infected cards switch to coral. HP is a horizontal seven-pixel meter. Fine threat tracks and rectangular portrait mounts keep the management surfaces clear, while pavilion rooflines, foliage and puppet cutouts provide the organic silhouettes.
+Panels, cards, meters and buttons use square corners. Thin warm outlines frame cards and the right panel; possessed cards switch to coral. HP is a horizontal seven-pixel meter. Fine threat tracks and rectangular portrait mounts keep the management surfaces clear, while pavilion rooflines, foliage and puppet cutouts provide the organic silhouettes.
 
 ## Components
 

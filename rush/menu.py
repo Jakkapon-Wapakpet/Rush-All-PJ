@@ -6,10 +6,10 @@ Two main screens: the title screen and the in-game day screen (dashboard + actio
 """
 
 from language import get_text, clear_screen, pause, choose_language
-from data import (RESOURCES, SKILLS, DIFFICULTIES, COUNTERS, LIGHTS, VOWS, MAX_CAMP, MAX_HP, MAX_GRUDGE,
+from data import (RESOURCES, SKILLS, DIFFICULTIES, COUNTERS, LIGHTS, VOWS, MAX_PEOPLE, MAX_HP, MAX_GRUDGE,
                   TICKET_PIECES, tr)
 from ui import heading, ask_yes_no, choose_from_list
-import camp
+import shelter
 import day
 import realm
 import storage
@@ -206,15 +206,15 @@ def display_dashboard() -> None:
     state = storage.state
     print("=" * 62)
     level = DIFFICULTIES[state["difficulty"]]
-    print(get_text(f"  👻 หลุดมิติผี   วันที่ {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_CAMP}   "
+    print(get_text(f"  👻 หลุดมิติผี   วันที่ {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_PEOPLE}   "
                    f"{level['icon']} {tr(level['name'])}",
-                   f"  👻 GHOST REALM   Day {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_CAMP}   "
+                   f"  👻 GHOST REALM   Day {state['day']}/{storage.goal_day()}   👥 {len(state['survivors'])}/{MAX_PEOPLE}   "
                    f"{level['icon']} {tr(level['name'])}"))
     print("=" * 62)
     res = state["resources"]
-    print(f" {RESOURCES['food']['icon']}{res['food']} ({camp.days_text('food')})   "
-          f"{RESOURCES['water']['icon']}{res['water']} ({camp.days_text('water')})   "
-          f"{RESOURCES['scrap']['icon']}{res['scrap']}   {RESOURCES['medicine']['icon']}{res['medicine']}")
+    print(f" {RESOURCES['food']['icon']}{res['food']} ({shelter.days_text('food')})   "
+          f"{RESOURCES['water']['icon']}{res['water']} ({shelter.days_text('water')})   "
+          f"{RESOURCES['incense']['icon']}{res['incense']}   {RESOURCES['holy_water']['icon']}{res['holy_water']}")
     if realm.advanced():
         prepared = " ".join(COUNTERS[key]["icon"] for key in state["prepared"]) or "-"
         print(get_text(f" 🌑 แค้น {state['grudge']}/{MAX_GRUDGE}   🎫 ตั๋ว {state['tickets']}/{TICKET_PIECES}   "
@@ -232,10 +232,10 @@ def display_dashboard() -> None:
               f"  {survivors.job_text(person)}")
         skills = "  ".join(f"{tr(SKILLS[s])} {survivors.stars(level)}" for s, level in person["skills"].items())
         print(f"           {skills}")
-        if person["infected"]:
-            print(f"           {survivors.infection_text(person)}")
-    if state["wanderer"]:
-        print(get_text(f"\n 🚶 {state['wanderer']['name']} รออยู่ที่ประตู!", f"\n 🚶 {state['wanderer']['name']} is waiting at the gate!"))
+        if person["possessed"]:
+            print(f"           {survivors.possession_text(person)}")
+    if state["stranger"]:
+        print(get_text(f"\n 🚶 {state['stranger']['name']} รออยู่ที่ประตู!", f"\n 🚶 {state['stranger']['name']} is waiting at the gate!"))
     print("-" * 62)
     print(get_text(" 1. ⚡ จัดงานอัตโนมัติ", " 1. ⚡ Auto-assign"))
     print(get_text(" 2. ✍ มอบหมายงานเอง", " 2. ✍ Assign a job"))
@@ -251,7 +251,7 @@ def display_dashboard() -> None:
 
 def more_menu() -> None:
     """เมนูอื่นๆ: ข้อมูลละเอียด บันทึก เปลี่ยนชื่อ ไล่ออก"""
-    actions = {"1": survivors.view_survivors, "2": camp.view_status, "3": day.camp_log,
+    actions = {"1": survivors.view_survivors, "2": shelter.view_status, "3": day.shelter_log,
                "4": survivors.rename_survivor, "5": survivors.exile_survivor}
     while True:
         clear_screen()
@@ -276,7 +276,7 @@ def more_menu() -> None:
 
 def day_menu() -> None:
     """ลูปหน้าเล่นเกม วนจนกว่าผู้เล่นจะพักเกม หรือเกมจบ"""
-    actions = {"1": survivors.auto_assign, "2": survivors.assign_job, "3": camp.build,
+    actions = {"1": survivors.auto_assign, "2": survivors.assign_job, "3": shelter.build,
                "4": survivors.gate, "5": day.end_day}
     advanced_actions = {"7": realm.tonight_menu, "8": realm.shrine_menu}
     # กฎ: เล่นได้เฉพาะตอนเกมยังไม่จบ (ชนะ/แพ้แล้วกลับหน้าแรก)

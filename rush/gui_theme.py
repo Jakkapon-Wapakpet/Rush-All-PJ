@@ -1,46 +1,46 @@
 #!/usr/bin/env python3
 """
 GUI Theme Module - GHOST REALM (หลุดมิติผี) (Bonus)
-สี ฟอนต์ และชิ้นส่วนหน้าจอที่ทุกส่วนของ GUI ใช้ร่วมกัน
+สี ฟอนต์ และชิ้นส่วนหน้าจอโทนหนังตะลุงสีที่ทุกส่วนของ GUI ใช้ร่วมกัน
 Shared colors, fonts, and widgets for the GUI.
 """
 
 import tkinter as tk
+from tkinter import ttk
 
 from language import get_text
 
-# ชุดสี "มิติผียามค่ำคืน"
+# ชุดสี "หนังตะลุงยามค่ำคืน"
 COLORS = {
-    "bg": "#0e0b13",          # พื้นหลังหน้าต่าง (ม่วงดำ)
-    "panel": "#16111d",       # พื้นแผง
-    "card": "#201929",        # พื้นการ์ด
-    "card_hover": "#2b2236",
-    "line": "#3a2f48",        # เส้นขอบ
-    "text": "#ece6f2",        # ตัวอักษรหลัก
-    "muted": "#8e84a0",       # ตัวอักษรรอง
-    "accent": "#7fe0c4",      # เขียววิญญาณเรืองแสง (สีหลักของธีม)
-    "accent_dark": "#4fb39a",
-    "ink": "#100c15",         # ตัวอักษรบนพื้นสีหลัก
-    "amber": "#f0b44c",       # แสงเทียน
-    "red": "#d93f55",         # สีเลือด
-    "red_dark": "#972a3b",
-    "blue": "#7aa5ef",
-    "purple": "#b48cf0",
-    "disabled": "#2a2233",
-    "screen": "#e8a548",      # จอผ้าหนังตะลุงที่มีไฟส่อง (พื้นหลังของภาพเงาทุกภาพ)
-    "screen_edge": "#c47a34", # ขอบจอที่ไฟส่องไม่ถึง / ควัน
-    "moon": "#f6c76a",        # พระจันทร์หลังจอ
-    "puppet": "#1a0f0c",      # สีตัวหนัง (เงา) ใช้วาดพื้นและตัวหนังสือบนจอผ้า
-    "far": "#8f5024",         # เงาของฉากหลัง (ศาลา) จางกว่าตัวหนัง เพื่อให้คนที่ยืนหน้าศาลาเด่นขึ้น
+    "bg": "#08141d",          # พื้นหลังหน้าต่าง
+    "panel": "#10212b",       # พื้นแผง
+    "card": "#142c35",        # พื้นการ์ด
+    "card_hover": "#203d45",
+    "line": "#796448",        # เส้นขอบ
+    "text": "#f0e2c8",        # ตัวอักษรหลัก
+    "muted": "#c4b69f",       # ตัวอักษรรอง
+    "accent": "#eab363",      # แสงเทียน (สีหลักของธีม)
+    "accent_dark": "#d09644",
+    "ink": "#171a15",         # ตัวอักษรบนพื้นสีหลัก
+    "amber": "#eab363",
+    "red": "#e18b82",
+    "red_dark": "#733d39",
+    "blue": "#86b9c6",
+    "purple": "#b6a2c5",
+    "green": "#a6bf80",
+    "job": "#354d33",         # ปุ่มเลือกงาน
+    "disabled": "#25353c",
+    "screen": "#152d36",      # จอผ้าหนังตะลุง (พื้นหลังของภาพตัวหนัง)
+    "screen_edge": "#0b202b",
+    "moon": "#eee1c5",
+    "puppet": "#0a1119",
+    "far": "#345563",
 }
 
-FONT = ("TkDefaultFont", 11)
-FONT_SMALL = ("TkDefaultFont", 9)
-FONT_SMALL_BOLD = ("TkDefaultFont", 9, "bold")
-FONT_BOLD = ("TkDefaultFont", 11, "bold")
-FONT_BIG = ("TkDefaultFont", 14, "bold")
-FONT_HUGE = ("TkDefaultFont", 28, "bold")
-FONT_LOGO = ("Courier", 24, "bold")
+FONT = ("Leelawadee UI", 11, "normal")
+FONT_SMALL = ("Leelawadee UI", 10, "normal")
+FONT_SMALL_BOLD = ("Leelawadee UI", 10, "bold")
+FONT_BOLD = ("Leelawadee UI", 11, "bold")
 
 
 def tk_safe(text: str) -> str:
@@ -51,48 +51,46 @@ def tk_safe(text: str) -> str:
     return "".join(char for char in text if ord(char) <= 0xFFFF).replace("️", "").strip()
 
 
-def type_font(text: str, size: int = 12) -> tuple:
-    """
-    ฟอนต์พิมพ์ดีดสำหรับหัวข้อ ใช้ได้เฉพาะข้อความภาษาอังกฤษ
-    เพราะ Courier ไม่มีตัวอักษรไทย (สระและวรรณยุกต์จะลอยแยก) จึงใช้ฟอนต์ปกติตัวหนาแทน
-    """
-    if all(ord(char) < 128 for char in text):
-        return ("Courier", size, "bold")
-    return ("TkDefaultFont", size, "bold")
+def clean(text) -> str:
+    """ข้อความที่แสดงบนจอ: ตัดอักขระที่ Tk แสดงไม่ได้ และใช้ชื่อเกมแบบสั้น"""
+    return tk_safe(str(text).replace("หลุดมิติผี", "มิติผี"))
 
 
-def add_hover(widget: tk.Widget, normal: str, hover: str) -> None:
-    """เปลี่ยนสีพื้นเมื่อเมาส์ชี้"""
-    widget.bind("<Enter>", lambda event: widget.config(bg=hover))
-    widget.bind("<Leave>", lambda event: widget.config(bg=normal))
+def font(text: str = "", size: int = 11) -> tuple:
+    """ฟอนต์ตัวหนาสำหรับหัวข้อและปุ่ม (รองรับทั้งไทยและอังกฤษ)"""
+    return ("Leelawadee UI", size, "bold")
 
 
-def label(parent: tk.Widget, text: str, bg: str, fg: str = None, font: tuple = FONT, **options) -> tk.Label:
+def label(parent: tk.Widget, text, bg: str = None, fg: str = None, font: tuple = None, **options) -> tk.Label:
     """ป้ายข้อความ (ตัดอักขระที่ Tk แสดงไม่ได้ออกให้อัตโนมัติ)"""
-    return tk.Label(parent, text=tk_safe(text), bg=bg, fg=fg or COLORS["text"], font=font, **options)
+    return tk.Label(parent, text=clean(text), bg=bg or COLORS["panel"], fg=fg or COLORS["text"],
+                    font=font or ("Leelawadee UI", 10), **options)
 
 
 def section_title(parent: tk.Widget, text: str, bg: str, size: int = 13, color: str = None) -> tk.Label:
     """หัวข้อสีหลัก"""
-    return tk.Label(parent, text=tk_safe(text), font=type_font(text, size), bg=bg, fg=color or COLORS["accent"])
+    return tk.Label(parent, text=clean(text), font=font(text, size), bg=bg, fg=color or COLORS["accent"])
 
 
-def flat_button(parent: tk.Widget, text: str, command, color: str = None, hover: str = None,
-                fg: str = "white", size: int = 11, padx: int = 12, pady: int = 5, **options) -> tk.Button:
+def flat_button(parent: tk.Widget, text: str, command, color: str = None, hover: str = None, fg: str = None,
+                size: int = 11, padx: int = 12, pady: int = 7, **options) -> tk.Button:
     """ปุ่มแบน มีสีพื้นและเปลี่ยนสีเมื่อเมาส์ชี้"""
     color = color or COLORS["card"]
     hover = hover or COLORS["card_hover"]
-    button = tk.Button(parent, text=tk_safe(text), command=command, font=type_font(text, size),
+    fg = fg or COLORS["text"]
+    button = tk.Button(parent, text=clean(text), command=command, font=font(text, size),
                        bg=color, fg=fg, activebackground=hover, activeforeground=fg,
                        relief="flat", bd=0, padx=padx, pady=pady, cursor="hand2",
-                       highlightthickness=0, **options)
-    add_hover(button, color, hover)
+                       highlightthickness=1, highlightbackground=COLORS["line"],
+                       highlightcolor=COLORS["accent"], **options)
+    button.bind("<Enter>", lambda event: button.config(bg=hover) if button.cget("state") != "disabled" else None)
+    button.bind("<Leave>", lambda event: button.config(bg=color))
     return button
 
 
 def set_button_text(button: tk.Button, text: str, size: int = 11) -> None:
-    """เปลี่ยนข้อความของปุ่ม พร้อมเลือกฟอนต์ใหม่ (ภาษาไทยห้ามใช้ Courier)"""
-    button.config(text=tk_safe(text), font=type_font(text, size))
+    """เปลี่ยนข้อความของปุ่ม พร้อมฟอนต์ใหม่"""
+    button.config(text=clean(text), font=font(text, size))
 
 
 def meter(parent: tk.Widget, ratio: float, color: str, height: int = 8) -> tk.Canvas:
@@ -111,7 +109,7 @@ def meter(parent: tk.Widget, ratio: float, color: str, height: int = 8) -> tk.Ca
 
 
 def picture(parent: tk.Widget, image: tk.PhotoImage) -> tk.Label:
-    """แสดงภาพเงา (จาก sprites.py) บนจอผ้าสีส้มเล็กๆ เหมือนการเล่นหนังตะลุง"""
+    """แสดงภาพตัวหนังบนจอผ้าเล็กๆ"""
     return tk.Label(parent, image=image, bg=COLORS["screen"], bd=0, padx=4, pady=4)
 
 
@@ -120,46 +118,45 @@ class ScrollableFrame(tk.Frame):
 
     def __init__(self, parent: tk.Widget, bg: str) -> None:
         super().__init__(parent, bg=bg)
+        style = ttk.Style(self)
+        if style.theme_use() != "clam":
+            style.theme_use("clam")
+        style.configure("Miti.Vertical.TScrollbar", background=COLORS["card_hover"],
+                        troughcolor=bg, bordercolor=bg, arrowcolor=COLORS["muted"],
+                        lightcolor=COLORS["card_hover"], darkcolor=bg, width=10)
         self.canvas = tk.Canvas(self, bg=bg, bd=0, highlightthickness=0)
-        scrollbar = tk.Scrollbar(self, command=self.canvas.yview, width=10, bd=0,
-                                 bg=COLORS["card"], troughcolor=bg,
-                                 activebackground=COLORS["accent"], highlightthickness=0)
-        self.canvas.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right", fill="y")
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview,
+                                       style="Miti.Vertical.TScrollbar")
+        self.scrollbar.pack(side="right", fill="y")
         self.canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.config(yscrollcommand=self.scrollbar.set)
 
         # inner คือกรอบที่ใส่เนื้อหาจริง วางอยู่ใน canvas
         self.inner = tk.Frame(self.canvas, bg=bg)
         self.window = self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
-        self.inner.bind("<Configure>", self.on_inner_resize)
-        self.canvas.bind("<Configure>",
-                         lambda event: self.canvas.itemconfig(self.window, width=event.width))
+        self.inner.bind("<Configure>", self.on_resize)
+        self.canvas.bind("<Configure>", self.on_resize)
 
         # ลูกกลิ้งเมาส์ (Windows/macOS ใช้ MouseWheel, Linux ใช้ Button-4/5)
         for sequence in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
-            self.bind_all(sequence, ScrollableFrame.on_wheel)
+            self.bind_all(sequence, self.on_wheel, add="+")
 
-    def on_inner_resize(self, event) -> None:
-        """เนื้อหาเปลี่ยนขนาด: อัปเดตพื้นที่เลื่อน และบังคับให้กว้างเท่า canvas"""
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        width = self.canvas.winfo_width()
-        if width > 1:
-            self.canvas.itemconfig(self.window, width=width)
+    def on_resize(self, event=None) -> None:
+        """ขนาดเปลี่ยน: ให้เนื้อหากว้างเท่า canvas และอัปเดตพื้นที่เลื่อน"""
+        self.canvas.itemconfig(self.window, width=max(1, self.canvas.winfo_width()))
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
     @staticmethod
-    def on_wheel(event) -> None:
+    def on_wheel(event):
         """หา ScrollableFrame ที่อยู่ใต้เมาส์ แล้วเลื่อนเฉพาะกรอบนั้น"""
         widget = event.widget
         while isinstance(widget, tk.Misc) and not isinstance(widget, ScrollableFrame):
             widget = widget.master
-        if not isinstance(widget, ScrollableFrame):
+        if not isinstance(widget, ScrollableFrame) or widget.inner.winfo_height() <= widget.canvas.winfo_height():
             return
-        if widget.inner.winfo_height() <= widget.canvas.winfo_height():
-            return
-        if event.num == 4 or getattr(event, "delta", 0) > 0:
-            widget.canvas.yview_scroll(-2, "units")
-        else:
-            widget.canvas.yview_scroll(2, "units")
+        up = getattr(event, "num", 0) == 4 or getattr(event, "delta", 0) > 0
+        widget.canvas.yview_scroll(-2 if up else 2, "units")
+        return "break"
 
     def clear(self) -> None:
         """ลบเนื้อหาทั้งหมด"""
@@ -167,15 +164,15 @@ class ScrollableFrame(tk.Frame):
             widget.destroy()
 
 
-def open_dialog(root: tk.Tk, title: str, color: str) -> tk.Toplevel:
-    """สร้างหน้าต่างย่อยในธีม (แถบสีด้านบน + หัวข้อ)"""
+def open_dialog(root: tk.Tk, title: str, color: str = None) -> tk.Toplevel:
+    """สร้างหน้าต่างย่อยในธีม (แถบหัวข้อด้านบน)"""
     dialog = tk.Toplevel(root, bg=COLORS["panel"])
-    dialog.title(get_text("หลุดมิติผี", "GHOST REALM"))
+    dialog.title("มิติผี · " + clean(title))
     dialog.transient(root)
     dialog.resizable(False, False)
-    tk.Frame(dialog, bg=color, height=5).pack(fill="x")
-    tk.Label(dialog, text=tk_safe(title), font=type_font(title, 18), bg=COLORS["panel"], fg=color,
-             padx=28).pack(pady=(16, 8))
+    header = tk.Frame(dialog, bg=COLORS["bg"], padx=22, pady=14)
+    header.pack(fill="x", pady=(0, 12))
+    label(header, title, COLORS["bg"], color or COLORS["accent"], font(title, 20)).pack(anchor="w")
     dialog.bind("<Escape>", lambda event: dialog.destroy())
     return dialog
 

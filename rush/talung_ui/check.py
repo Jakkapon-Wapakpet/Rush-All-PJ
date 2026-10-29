@@ -4,6 +4,11 @@ import random
 import sys
 import tkinter as tk
 from pathlib import Path
+from data import LOCATIONS, STORY
+from language import get_language, set_language
+import day
+import storage
+import survivors
 from talung_ui import main as app
 
 
@@ -30,7 +35,6 @@ def capture_window(root, filename):
 
 
 def run():
-    storage = app.gui.storage
     save, history = storage.SAVE_FILE, storage.HISTORY_FILE
     before = (digest(save), digest(history))
     storage.SAVE_FILE = str(app.art.ART_DIR / "check-save.json")
@@ -49,7 +53,7 @@ def run():
         assert [person["name"] for person in storage.state["survivors"]] == ["กล้า", "พิกุล", "ชื่อที่ผู้เล่นตั้ง"]
         assert storage.state["fallen"] == ["สิงห์"]
         storage.new_game("normal")
-        app.set_language("th")
+        set_language("th")
         root = tk.Tk()
         root.report_callback_exception = lambda kind, value, traceback: errors.append(value)
         window = app.TalungApp(root)
@@ -89,7 +93,7 @@ def run():
             root.after(220, inspect_and_close)
             return operation()
 
-        for name in app.art.PEOPLE + app.art.GHOSTS + ("food", "water", "scrap", "medicine", "barricade", "garden", "clinic", "collector"):
+        for name in app.art.PEOPLE + app.art.GHOST_SPRITES + ("food", "water", "incense", "holy_water", "sacred_thread", "vegetable_patch", "spirit_house", "rain_barrel"):
             for shadow in (False, True):
                 image = app.art.sprite(name, 4, shadow)
                 assert 0 < image.width() <= 64 and 0 < image.height() <= 64, name
@@ -109,16 +113,16 @@ def run():
                 for key in app.gui.TABS:
                     window.switch_tab(key)
                     root.update()
-        app.set_language("th")
+        set_language("th")
         root.geometry("1440x900+0+0")
         window.refresh()
         root.update()
         assert "หลุด" not in root.title()
         assert modal(window.choose_difficulty, "gui-difficulty.png", choose=True) == "easy"
         person = storage.state["survivors"][0]
-        assert modal(lambda: window.choose_location(person), choose=True) in app.gui.LOCATIONS
+        assert modal(lambda: window.choose_location(person), choose=True) in LOCATIONS
         modal(lambda: window.assign(person, "scavenge"), choose=True)
-        assert person["job"] == "scavenge" and person["target"] in app.gui.LOCATIONS
+        assert person["job"] == "scavenge" and person["target"] in LOCATIONS
         modal(lambda: window.person_details(person), "gui-person.png")
         modal(window.show_help, "gui-help.png")
 
@@ -135,23 +139,23 @@ def run():
         assert window.story_overlay.winfo_exists()
         if capture:
             capture_window(root, "gui-story.png")
-        for _ in range((len(app.gui.STORY[app.get_language()]) + 2) // 3):
+        for _ in range((len(STORY[get_language()]) + 2) // 3):
             window.story_next.invoke()
         assert not window.story_overlay.winfo_exists()
         # A newly started game selects a difficulty before showing the story.
         modal(window.new_game, choose=True)
         assert storage.state["difficulty"] == "easy"
-        for _ in range((len(app.gui.STORY[app.get_language()]) + 2) // 3):
+        for _ in range((len(STORY[get_language()]) + 2) // 3):
             window.story_next.invoke()
 
         storage.new_game("normal")
         storage.state["day"] = 4
-        storage.state["resources"].update(food=13, water=7, scrap=15, medicine=1)
+        storage.state["resources"].update(food=13, water=7, incense=15, holy_water=1)
         for person, hp, job in zip(storage.state["survivors"], (80, 45, 90), ("scavenge", "heal", "guard")):
             person.update(hp=hp, job=job)
-        guest = app.gui.day.make_wanderer(random.Random(7))
+        guest = day.make_stranger(random.Random(7))
         guest["name"] = "ชบา"
-        storage.state["wanderer"] = guest
+        storage.state["stranger"] = guest
         window.tab = "gate"
         window.refresh()
         root.update()
@@ -165,14 +169,14 @@ def run():
         assert len(window.person_cards) == 3
         # Check job popup dispatch without changing the core game's assignment.
         for person in storage.state["survivors"]:
-            assert app.gui.survivors.job_text(person)
+            assert survivors.job_text(person)
         for name, look in (("บัว", "girl"), ("ลุงเพิ่ม", "elder"), ("เทียน", "man")):
             storage.state["survivors"].append(storage.new_survivor(name, {"scavenge": 2, "guard": 2, "heal": 2}, look))
             window.refresh()
             root.update()
             for card in window.person_cards:
                 assert card.winfo_y() + card.winfo_height() <= window.people_view.winfo_height()
-        storage.state["survivors"][1]["infected"] = 1
+        storage.state["survivors"][1]["possessed"] = 1
         storage.state["day"] = storage.goal_day()
         for language in ("en", "th"):
             window.change_language(language)
@@ -188,14 +192,14 @@ def run():
             assert all(canvas.winfo_height() > 40 for canvas in window.portrait_canvases)
         if capture:
             capture_window(root, "gui-small.png")
-        window.switch_tab("zombies")
+        window.switch_tab("ghosts")
         root.update()
         if capture:
             capture_window(root, "gui-ghosts.png")
 
         storage.new_game("easy")
-        app.gui.survivors.do_auto_assign()
-        result = app.gui.day.do_end_day(random.Random(42))
+        survivors.do_auto_assign()
+        result = day.do_end_day(random.Random(42))
         assert storage.state["day"] == 2
         modal(lambda: window.show_night(1, result), "gui-night.png")
         # Synthetic presentation cases cover all report endings and raid art.
