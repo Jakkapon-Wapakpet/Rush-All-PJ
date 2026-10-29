@@ -3,5 +3,5 @@ __pycache__/
 *.pyc
 
 # Save/history files the game creates while playing
-rush/last_shelter_save.json
-rush/last_shelter_history.json
+rush/ghost_realm_save.json
+rush/ghost_realm_history.json

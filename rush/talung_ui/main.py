@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import gui
 from data import JOBS, MAX_PEOPLE, MAX_HP, RAID_START_DAY, RESOURCES, tr, GHOSTS
-import shelter
+import sala
 import realm
 import storage
 import survivors
@@ -18,7 +18,7 @@ from talung_ui.screens import NarrativeScreens
 COLORS = theme.COLORS
 
 
-class TalungApp(NarrativeScreens, gui.ShelterApp):
+class TalungApp(NarrativeScreens, gui.SalaApp):
     def __init__(self, root):
         self.stage = art.Stage()
         self.title_overlay = None
@@ -98,7 +98,7 @@ class TalungApp(NarrativeScreens, gui.ShelterApp):
             words = tk.Frame(group, bg=COLORS["bg"])
             words.pack(side="left")
             theme.label(words, tr(info["name"]), COLORS["bg"], COLORS["muted"], theme.FONT_SMALL).pack(anchor="w")
-            color = COLORS["red"] if key in ("food", "water") and shelter.days_left(key) <= 1 else COLORS["text"]
+            color = COLORS["red"] if key in ("food", "water") and sala.days_left(key) <= 1 else COLORS["text"]
             theme.label(words, state["resources"][key], COLORS["bg"], color, theme.font(size=17)).pack(anchor="w")
         for code, button in self.lang_buttons.items():
             button.config(fg=COLORS["accent"] if code == get_language() else COLORS["muted"])

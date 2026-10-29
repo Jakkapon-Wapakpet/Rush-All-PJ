@@ -15,7 +15,7 @@ from data import (RESOURCES, SKILLS, BUILDINGS, GHOSTS, LOOKS, LOCATIONS, COUNTE
                   TICKET_PIECES, MAX_PEOPLE, MAX_HP, STARVE_DAMAGE,
                   REST_HEAL, RAID_START_DAY, STRANGER_CHANCE, STRANGER_POSSESSED, STRANGER_NAMES, TURN_DAYS, tr)
 from ui import heading, ask_yes_no
-import shelter
+import sala
 import realm
 import storage
 import survivors
@@ -143,12 +143,12 @@ def heal(medic: dict, report: list) -> None:
 
 
 def produce(report: list) -> None:
-    """สิ่งก่อสร้างผลิตของ (จำนวนดูจาก shelter.DAILY_OUTPUT, ศาลพระภูมิให้น้ำมนต์ทุก 2 วัน)"""
+    """สิ่งก่อสร้างผลิตของ (จำนวนดูจาก sala.DAILY_OUTPUT, ศาลพระภูมิให้น้ำมนต์ทุก 2 วัน)"""
     state = storage.state
     for building in state["buildings"]:
-        if building not in shelter.DAILY_OUTPUT:
+        if building not in sala.DAILY_OUTPUT:
             continue
-        resource, amount = shelter.DAILY_OUTPUT[building]
+        resource, amount = sala.DAILY_OUTPUT[building]
         if building == "spirit_house":
             if state["day"] % 2:
                 continue
@@ -523,5 +523,5 @@ def shelter_log() -> None:
         print(get_text("\nอาหารคงเหลือตอนจบแต่ละวัน:", "\nFood left at the end of each day:"))
         for entry in log["days"][-8:]:
             print(f"  {get_text('วัน', 'Day')} {entry['day']:>2}  {'█' * min(entry['food'], 30):<30} {entry['food']}")
-    print(get_text(f"\nคาดการณ์ตอนนี้: อาหาร{shelter.days_text('food')}  น้ำ{shelter.days_text('water')}",
-                   f"\nForecast now: food {shelter.days_text('food')}, water {shelter.days_text('water')}"))
+    print(get_text(f"\nคาดการณ์ตอนนี้: อาหาร{sala.days_text('food')}  น้ำ{sala.days_text('water')}",
+                   f"\nForecast now: food {sala.days_text('food')}, water {sala.days_text('water')}"))

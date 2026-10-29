@@ -13,7 +13,7 @@ from language import get_text
 from data import RESOURCES, STARTING_SURVIVORS, DIFFICULTIES, MAX_HP, CHARACTER_NAME_UPDATES, GOAL_DAY, RAID_START_DAY, GHOSTS, tr
 
 # เก็บไฟล์เซฟไว้ในโฟลเดอร์เดียวกับโปรแกรม ไม่ว่าจะสั่งรันจากโฟลเดอร์ไหน
-SAVE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "last_shelter_save.json")
+SAVE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ghost_realm_save.json")
 
 # ส่วนที่ไฟล์เซฟต้องมี (ส่วนอื่นที่เพิ่มทีหลังจะเติมค่าเริ่มต้นให้ เซฟเก่าจึงยังโหลดได้)
 REQUIRED = ("day", "status", "resources", "survivors", "buildings", "stranger", "log")
@@ -181,7 +181,7 @@ def gain(key: str, amount: int) -> None:
 
 # ---------- ประวัติผลเกม (แยกไฟล์ เพื่อไม่ให้หายตอนเริ่มเกมใหม่) ----------
 
-HISTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "last_shelter_history.json")
+HISTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ghost_realm_history.json")
 
 
 def load_history() -> list:

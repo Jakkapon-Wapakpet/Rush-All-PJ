@@ -12,7 +12,7 @@ from language import get_text
 from data import (DIFFICULTIES, LOCATIONS, OMENS, COUNTERS, LIGHTS, VOWS, VOW_DAYS, GHOSTS, MAX_GRUDGE, MERIT_COST,
                   TICKET_PIECES, RAID_START_DAY, tr)
 from ui import heading, choose_from_list
-import shelter
+import sala
 import storage
 
 
@@ -28,7 +28,7 @@ def advanced() -> bool:
 
 def cost_label(cost: dict) -> str:
     """ราคา เช่น '🕯 ธูปเทียน 3 + 🍚 อาหาร 2'"""
-    return shelter.cost_text(cost) if cost else get_text("ฟรี", "free")
+    return sala.cost_text(cost) if cost else get_text("ฟรี", "free")
 
 
 # ---------- สถานที่ออกไปหาของ ----------
@@ -68,7 +68,7 @@ def recommend_location() -> str:
     state = storage.state
     if state["resources"]["holy_water"] == 0 or any(p["possessed"] for p in state["survivors"]):
         return "temple"
-    return "market" if shelter.days_left("food") <= shelter.days_left("water") else "well"
+    return "market" if sala.days_left("food") <= sala.days_left("water") else "well"
 
 
 def location_label(key: str) -> str:

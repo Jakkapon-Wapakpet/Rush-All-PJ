@@ -9,7 +9,7 @@ from language import get_text, clear_screen, pause, choose_language
 from data import (RESOURCES, SKILLS, DIFFICULTIES, COUNTERS, LIGHTS, VOWS, MAX_PEOPLE, MAX_HP, MAX_GRUDGE,
                   TICKET_PIECES, tr)
 from ui import heading, ask_yes_no, choose_from_list, show_banner
-import shelter
+import sala
 import day
 import realm
 import storage
@@ -214,8 +214,8 @@ def display_dashboard() -> None:
                    f"{level['icon']} {tr(level['name'])}"))
     print("=" * 62)
     res = state["resources"]
-    print(f" {RESOURCES['food']['icon']}{res['food']} ({shelter.days_text('food')})   "
-          f"{RESOURCES['water']['icon']}{res['water']} ({shelter.days_text('water')})   "
+    print(f" {RESOURCES['food']['icon']}{res['food']} ({sala.days_text('food')})   "
+          f"{RESOURCES['water']['icon']}{res['water']} ({sala.days_text('water')})   "
           f"{RESOURCES['incense']['icon']}{res['incense']}   {RESOURCES['holy_water']['icon']}{res['holy_water']}")
     if realm.advanced():
         prepared = " ".join(COUNTERS[key]["icon"] for key in state["prepared"]) or "-"
@@ -253,7 +253,7 @@ def display_dashboard() -> None:
 
 def more_menu() -> None:
     """เมนูอื่นๆ: ข้อมูลละเอียด บันทึก เปลี่ยนชื่อ ไล่ออก"""
-    actions = {"1": survivors.view_survivors, "2": shelter.view_status, "3": day.shelter_log,
+    actions = {"1": survivors.view_survivors, "2": sala.view_status, "3": day.shelter_log,
                "4": survivors.rename_survivor, "5": survivors.exile_survivor}
     while True:
         clear_screen()
@@ -278,7 +278,7 @@ def more_menu() -> None:
 
 def day_menu() -> None:
     """ลูปหน้าเล่นเกม วนจนกว่าผู้เล่นจะพักเกม หรือเกมจบ"""
-    actions = {"1": survivors.auto_assign, "2": survivors.assign_job, "3": shelter.build,
+    actions = {"1": survivors.auto_assign, "2": survivors.assign_job, "3": sala.build,
                "4": survivors.gate, "5": day.end_day}
     advanced_actions = {"7": realm.tonight_menu, "8": realm.shrine_menu}
     # กฎ: เล่นได้เฉพาะตอนเกมยังไม่จบ (ชนะ/แพ้แล้วกลับหน้าแรก)

@@ -8,7 +8,7 @@ Survivors: status, job assignment, auto-assign, recruiting, renaming, and exilin
 from language import get_text
 from data import JOBS, SKILLS, LOOKS, LOCATIONS, MAX_PEOPLE, MAX_HP, MIN_SCAVENGE_HP, RAID_START_DAY, TURN_DAYS, tr
 from ui import heading, choose_from_list, ask_yes_no
-import shelter
+import sala
 import realm
 import storage
 
@@ -128,7 +128,7 @@ def job_score(person: dict, job: str) -> float:
         return (MAX_HP - person["hp"]) / 25
     skill = person["skills"][JOBS[job]["skill"]]
     if job == "scavenge":
-        need = 2.0 if min(shelter.days_left("food"), shelter.days_left("water")) <= 2 else 1.0
+        need = 2.0 if min(sala.days_left("food"), sala.days_left("water")) <= 2 else 1.0
     elif job == "guard":
         need = 1.3 if state["day"] >= RAID_START_DAY else 0.2
     else:

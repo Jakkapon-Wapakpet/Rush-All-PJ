@@ -2,7 +2,7 @@
 """
 GUI - GHOST REALM (มิติผี) (Bonus)
 ส่วนกลางของหน้าต่าง Tkinter: การกระทำของผู้เล่น (เรียก do_* ชุดเดียวกับ Terminal)
-และแท็บคืนนี้/ศาลเจ้า/บันทึก ส่วนหน้าตาหนังตะลุงอยู่ใน talung_ui/ (TalungApp สืบทอดจาก ShelterApp)
+และแท็บคืนนี้/ศาลเจ้า/บันทึก ส่วนหน้าตาหนังตะลุงอยู่ใน talung_ui/ (TalungApp สืบทอดจาก SalaApp)
 Shared Tkinter game logic; the Nang Talung look lives in talung_ui/.
 
 รัน: python3 gui.py
@@ -21,7 +21,7 @@ except ImportError:
 from language import get_text, set_language
 from data import (RESOURCES, SKILLS, JOBS, BUILDINGS, GHOSTS, RAID_START_DAY, LOCATIONS, COUNTERS, LIGHTS, VOWS,
                   VOW_DAYS, MERIT_COST, MAX_GRUDGE, TICKET_PIECES, tr)
-import shelter
+import sala
 import day
 import menu
 import realm
@@ -86,7 +86,7 @@ def wave_counts(line: str) -> list:
     return found
 
 
-class ShelterApp:
+class SalaApp:
     """หน้าต่างหลักของเกม"""
 
     def __init__(self, root: tk.Tk) -> None:
@@ -392,7 +392,7 @@ class ShelterApp:
     def build(self, key: str) -> None:
         if not self.playing():
             return
-        error = shelter.do_build(key)
+        error = sala.do_build(key)
         if error:
             self.say(error, COLORS["red"])
         else:

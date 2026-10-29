@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Camp Module - GHOST REALM (มิติผี)
+Sala Module - GHOST REALM (มิติผี)
 ทรัพยากรและสิ่งก่อสร้าง: ดูของในศาลา คาดการณ์ว่าอาหาร/น้ำจะหมดในกี่วัน และสร้างสิ่งก่อสร้าง
 Resources and buildings: stock, run-out forecast, and construction.
 """

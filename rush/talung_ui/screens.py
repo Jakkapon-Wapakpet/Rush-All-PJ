@@ -3,7 +3,7 @@ import tkinter as tk
 from PIL import Image, ImageOps, ImageTk
 import gui
 from data import BUILDINGS, DIFFICULTIES, MAX_HP, RESOURCES, SKILLS, STORY, tr, GHOSTS
-import shelter
+import sala
 import day
 import menu
 import storage
@@ -297,7 +297,7 @@ class NarrativeScreens:
             tk.Label(top, image=art.sprite(key, 4), bg=C["card"]).pack(side="left", padx=(0, 10))
             theme.label(top, tr(info["name"]), C["card"], C["text"], theme.font(size=13), wraplength=205).pack(side="left")
             theme.label(card, tr(info["about"]), C["card"], C["muted"], theme.FONT_SMALL, wraplength=280, justify="left").pack(anchor="w", pady=6)
-            cost = shelter.build_cost(key)
+            cost = sala.build_cost(key)
             cost_text = " · ".join(f"{tr(RESOURCES[resource]['name'])} {amount}" for resource, amount in cost.items())
             theme.label(card, cost_text, C["card"], C["muted"], theme.FONT_SMALL).pack(anchor="w", pady=(0, 8))
             if built:
