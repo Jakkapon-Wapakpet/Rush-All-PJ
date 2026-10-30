@@ -34,36 +34,4 @@ python gui.py
 python gui.py --check
 ```
 
-เพิ่ม `--capture` เพื่อบันทึกภาพหน้าต่างบน Windows ไว้ใน `assets/talung`.
 การทดสอบใช้ `check-save.json` และ `check-history.json` ในโฟลเดอร์ภาพเท่านั้น
-
-## Product and direction
-
-Small Thai ghost survival management game on Windows desktop using existing
-Python/Tkinter rules. Preserve TH/EN, difficulties, gate inspection, jobs,
-construction, ghost tiers, logs and the advanced game systems.
-
-User-approved style: a management game using Nang Talung art. Midnight-indigo
-backgrounds, colored clothes and items, amber primary actions, moss-green jobs,
-restrained blood-red ghost details. Three large survivor cards per row below
-the left panorama; shelter menus and gate decisions on the right.
-
-## Direction contract
-
-THESIS: An intimate Thai ghost shelter managed through clear daily decisions.
-
-OWN-WORLD: Indigo night, carved puppet figures with colored clothing, warm
-pavilion light, ivory labels; restrained red means ghosts or danger.
-
-STORY: Read supplies, inspect newcomers, assign work and end the day.
-
-FIRST VIEWPORT: Responsive compact panorama above three large cards on the
-left, shelter tabs and gate on the right, stock above and persistent actions below.
-
-FORM: User-pinned Nang Talung management world. Job dropdowns and status copy
-confirm actions immediately. Title, skippable new-game story, people details,
-difficulty, help and night reports share the same palette and artwork.
-
-FINISH: Check rendered Windows captures and integration behavior, review the
-result, record the implemented system and image provenance. Original game
-sources remain outside this presentation layer.

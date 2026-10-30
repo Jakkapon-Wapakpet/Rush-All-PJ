@@ -1,7 +1,6 @@
 """Bounded integration checks using isolated game saves and real window renders."""
 import hashlib
 import random
-import sys
 import tkinter as tk
 from pathlib import Path
 from data import LOCATIONS, STORY
@@ -23,23 +22,11 @@ def children(widget):
         yield from children(child)
 
 
-def capture_window(root, filename):
-    from PIL import ImageGrab
-    root.lift()
-    root.update()
-    root.after(250, root.quit)
-    root.mainloop()
-    image = ImageGrab.grab(window=int(root.frame(), 0))
-    assert image.width >= 300 and image.height >= 150 and image.getbbox(), "Invalid capture"
-    image.save(app.art.ART_DIR / filename)
-
-
 def run():
     save, history = storage.SAVE_FILE, storage.HISTORY_FILE
     before = (digest(save), digest(history))
     storage.SAVE_FILE = str(app.art.ART_DIR / "check-save.json")
     storage.HISTORY_FILE = str(app.art.ART_DIR / "check-history.json")
-    capture = "--capture" in sys.argv
     root = None
     errors = []
     try:
@@ -71,15 +58,13 @@ def run():
         storage.new_game("normal")
         window.refresh()
 
-        def modal(operation, filename=None, choose=False):
+        def modal(operation, choose=False):
             def inspect_and_close():
                 dialog = None
                 try:
                     dialogs = [child for child in root.winfo_children() if isinstance(child, tk.Toplevel)]
                     assert len(dialogs) == 1, "Expected one modal dialog"
                     dialog = dialogs[0]
-                    if capture and filename:
-                        capture_window(dialog, filename)
                     buttons = [child for child in children(dialog) if isinstance(child, tk.Button)]
                     if choose:
                         buttons[0].invoke()
@@ -118,13 +103,13 @@ def run():
         window.refresh()
         root.update()
         assert "หลุด" not in root.title()
-        assert modal(window.choose_difficulty, "gui-difficulty.png", choose=True) == "easy"
+        assert modal(window.choose_difficulty, choose=True) == "easy"
         person = storage.state["survivors"][0]
         assert modal(lambda: window.choose_location(person), choose=True) in LOCATIONS
         modal(lambda: window.assign(person, "scavenge"), choose=True)
         assert person["job"] == "scavenge" and person["target"] in LOCATIONS
-        modal(lambda: window.person_details(person), "gui-person.png")
-        modal(window.show_help, "gui-help.png")
+        modal(lambda: window.person_details(person))
+        modal(window.show_help)
 
         # New-game menu/intro are real UI flows, using only the isolated save.
         storage.new_game("normal")
@@ -132,13 +117,9 @@ def run():
         window.refresh()
         window.show_title()
         root.update()
-        if capture:
-            capture_window(root, "gui-menu.png")
         window.resume_button.invoke()
         root.update()
         assert window.story_overlay.winfo_exists()
-        if capture:
-            capture_window(root, "gui-story.png")
         for _ in range((len(STORY[get_language()]) + 2) // 3):
             window.story_next.invoke()
         assert not window.story_overlay.winfo_exists()
@@ -159,13 +140,6 @@ def run():
         window.tab = "gate"
         window.refresh()
         root.update()
-        if capture:
-            capture_window(root, "gui-desktop.png")
-            root.geometry("1600x1000+0+0")
-            root.update()
-            capture_window(root, "gui-wide.png")
-            root.geometry("1440x900+0+0")
-            root.update()
         assert len(window.person_cards) == 3
         # Check job popup dispatch without changing the core game's assignment.
         for person in storage.state["survivors"]:
@@ -190,18 +164,14 @@ def run():
                     if isinstance(control, tk.Button):
                         assert control.winfo_ismapped(), "Card action clipped"
             assert all(canvas.winfo_height() > 40 for canvas in window.portrait_canvases)
-        if capture:
-            capture_window(root, "gui-small.png")
         window.switch_tab("ghosts")
         root.update()
-        if capture:
-            capture_window(root, "gui-ghosts.png")
 
         storage.new_game("easy")
         survivors.do_auto_assign()
         result = day.do_end_day(random.Random(42))
         assert storage.state["day"] == 2
-        modal(lambda: window.show_night(1, result), "gui-night.png")
+        modal(lambda: window.show_night(1, result))
         # Synthetic presentation cases cover all report endings and raid art.
         for status in ("won", "lost"):
             sample = dict(result, status=status, lines=["👻x2 🔥x1 🦴x1 👺x1 🐯x1 = พลัง 24 vs พลังป้องกัน 20"])

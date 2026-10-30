@@ -26,15 +26,10 @@ COLORS = {
     "red": "#e18b82",
     "red_dark": "#733d39",
     "blue": "#86b9c6",
-    "purple": "#b6a2c5",
     "green": "#a6bf80",
     "job": "#354d33",         # ปุ่มเลือกงาน
     "disabled": "#25353c",
     "screen": "#152d36",      # จอผ้าหนังตะลุง (พื้นหลังของภาพตัวหนัง)
-    "screen_edge": "#0b202b",
-    "moon": "#eee1c5",
-    "puppet": "#0a1119",
-    "far": "#345563",
 }
 
 FONT = ("Leelawadee UI", 11, "normal")
