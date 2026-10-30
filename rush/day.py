@@ -14,7 +14,8 @@ from language import get_text
 from data import (RESOURCES, SKILLS, BUILDINGS, GHOSTS, LOOKS, LOCATIONS, COUNTERS, FRIEND_GHOST_POWER,
                   TICKET_PIECES, MAX_PEOPLE, MAX_HP, STARVE_DAMAGE,
                   REST_HEAL, RAID_START_DAY, STRANGER_CHANCE, STRANGER_POSSESSED, STRANGER_NAMES, TURN_DAYS, tr)
-from ui import heading, ask_yes_no
+from ui import heading, ask_yes_no, show_art, NIGHT_ART, NIGHT_ZONES, PORTAL_ART, PORTAL_ZONES, GRAVE_ART, GRAVE_ZONES
+from art import NIGHT_PIXELS, PORTAL_PIXELS, GRAVE_PIXELS
 import sala
 import realm
 import storage
@@ -438,6 +439,7 @@ def end_day() -> None:
         return
 
     result = do_end_day()
+    show_art(NIGHT_ART, NIGHT_ZONES, pixels=NIGHT_PIXELS)
     print()
     for line in result["lines"]:
         print(line)
@@ -447,6 +449,7 @@ def end_day() -> None:
         saved = rescued()
         left_behind = len(state["survivors"]) - len(saved)
         stars, title = ending_grade(len(saved), result["early"])
+        show_art(PORTAL_ART, PORTAL_ZONES, pixels=PORTAL_PIXELS)
         if result["early"]:
             print(get_text(f"\n🎫 ตั๋วครบ {TICKET_PIECES} ชิ้น! ประตูบ้านผีสิงเปิดออกตั้งแต่คืนที่ {state['day']} (ดาวพิเศษ +1)",
                            f"\n🎫 All {TICKET_PIECES} ticket pieces! The haunted-house door opens on night {state['day']} (bonus star)"))
@@ -457,6 +460,7 @@ def end_day() -> None:
                            f"   ({left_behind} possessed survivor(s) could not pass through...)"))
         print(f"   {'⭐' * stars}  {title}")
     elif result["status"] == "lost":
+        show_art(GRAVE_ART, GRAVE_ZONES, pixels=GRAVE_PIXELS)
         print(get_text("\n☠ ศาลาเงียบงัน... ไม่มีใครได้กลับบ้าน", "\n☠ The sala falls silent... No one made it home."))
     else:
         print(get_text(f"\n🌅 เช้าวันที่ {state['day']}/{storage.goal_day()}", f"\n🌅 Morning of day {state['day']}/{storage.goal_day()}"))
